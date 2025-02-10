@@ -3,7 +3,7 @@
 # snp_table, processes it, and runs the CMH tests. The results are saved in the
 # results folder.
 
-# Process raw data =============================================================
+# 01 - Process raw data ========================================================
 source("scripts/01_data_preparation.R")
 
 snp_table_shahrestani <- as.data.frame(ReadAndPrepare(mode = "shahrestani"))
@@ -14,7 +14,7 @@ snp_table_regimes <- as.data.frame(ReadAndPrepare(mode = "regimes"))
 saveRDS(snp_table_regimes,
         "data/processed/processed_snps_abcd_regimes.rds")
 
-# CMH tests ====================================================================
+# 02 - CMH tests ===============================================================
 source("scripts/02_cmh_tests.R")
 
 snp_table_shahrestani <- 
@@ -121,10 +121,102 @@ cmh_pvals$cmh_adapted_b01_vs_b56 <-
 
 saveRDS(cmh_pvals, "results/cmh_pvals.rds")
 
-# Permutation tests ============================================================
+# 03 - Permutation tests =======================================================
+source("scripts/03_permutation_test.R")
 
+snp_table_shahrestani <-
+  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
 
-# Plotting the results =========================================================
+snp_table_regimes <-
+  readRDS("data/processed/processed_snps_abcd_regimes.rds")
+
+n <- 1000
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_OBO01vsOBO20.csv",
+  snp_table = snp_table_shahrestani,
+  treatment1 = "OBO",
+  gen1 = "01",
+  treatment2 = "OBO",
+  gen2 = "20"
+)
+
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_OB01vsOB20.csv",
+  snp_table = snp_table_shahrestani,
+  treatment1 = "OB",
+  gen1 = "01",
+  treatment2 = "OB",
+  gen2 = "20"
+)
+
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_nBO01vsnBO56.csv",
+  snp_table = snp_table_shahrestani,
+  treatment1 = "nBO",
+  gen1 = "01",
+  treatment2 = "nBO",
+  gen2 = "56"
+)
+
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_nB01vsnB56.csv",
+  snp_table = snp_table_shahrestani,
+  treatment1 = "nB",
+  gen1 = "01",
+  treatment2 = "nB",
+  gen2 = "56"
+)
+
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_O01vsO20.csv",
+  snp_table = snp_table_regimes,
+  treatment1 = "O",
+  gen1 = "01",
+  treatment2 = "O",
+  gen2 = "20"
+)
+
+sapply(
+  1:n,
+  runPermutationTestIteration,
+  method = "classic",
+  filename = "results/permutation_test/classic_B01vsB56.csv",
+  snp_table = snp_table_regimes,
+  treatment1 = "B",
+  gen1 = "01",
+  treatment2 = "B",
+  gen2 = "56"
+)
+
+# Read files and create a new csv with all needed information
+obo <- fread("results/permutation_test/classic_OBO01vsOBO20.csv", header = FALSE)
+ob  <- fread("results/permutation_test/classic_OB01vsOB20.csv",   header = FALSE)
+nbo <- fread("results/permutation_test/classic_nBO01vsnBO56.csv", header = FALSE)
+nb  <- fread("results/permutation_test/classic_nB01vsnB56.csv",   header = FALSE)
+b   <- fread("results/permutation_test/classic_B01vsB56.csv",     header = FALSE)
+o   <- fread("results/permutation_test/classic_O01vsO20.csv",     header = FALSE)
+
+perm_pvals <- cbind(obo,ob,nbo,nb,o,b)
+colnames(perm_pvals) <- c("obo", "ob", "nbo", "nb", "o", "b")
+
+fwrite(perm_pvals, file = "results/perm_pvals.csv")
+
+# 04 - Plotting the results ====================================================
 source("scripts/03_plot_functions.R")
 
 cmh_pvals <- readRDS("results/cmh_pvals.rds")
@@ -423,7 +515,7 @@ grid.arrange(grid_plot_cmh_adapted_OBO,
 
 dev.off()
 
-# PCA Analysis =================================================================
+# 05 - PCA Analysis ============================================================
 source("scripts/02_cmh_tests.R")
 source("scripts/04_pca_analysis.R")
 
