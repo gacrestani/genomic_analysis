@@ -1,33 +1,27 @@
-# ==============================================================================
+# Header =======================================================================
 # This script is the main script that runs the entire analysis. It reads the raw
 # snp_table, processes it, and runs the CMH tests. The results are saved in the
 # results folder.
-# ==============================================================================
 
-# Read raw snp_table and create a processed version ============================
+# Process raw data =============================================================
 source("scripts/01_data_preparation.R")
 
 snp_table_shahrestani <- as.data.frame(ReadAndPrepare(mode = "shahrestani"))
-fwrite(snp_table_shahrestani,
-       file = "data/processed/processed_snps_abcd_shahrestani.csv",
-       sep = ",",
-       row.names = FALSE)
+saveRDS(snp_table_shahrestani,
+        "data/processed/processed_snps_abcd_shahrestani.rds")
 
 snp_table_regimes <- as.data.frame(ReadAndPrepare(mode = "regimes"))
-fwrite(snp_table_regimes,
-       file = "data/processed/processed_snps_abcd_regimes.csv",
-       sep = ",",
-       row.names = FALSE)
-# ==============================================================================
+saveRDS(snp_table_regimes,
+        "data/processed/processed_snps_abcd_regimes.rds")
 
-# Running the CMH tests ========================================================
+# CMH tests ====================================================================
 source("scripts/02_cmh_tests.R")
 
 snp_table_shahrestani <- 
-  as.data.frame(fread("data/processed/processed_snps_abcd_shahrestani.csv"))
+  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
 
 snp_table_regimes <-
-  as.data.frame(fread("data/processed/processed_snps_abcd_regimes.csv"))
+  readRDS("data/processed/processed_snps_abcd_regimes.rds")
 
 # Initiates an empty dataframe with the same number of rows as our snp tables
 cmh_pvals <- data.frame(matrix(NA,
@@ -125,15 +119,15 @@ cmh_pvals$cmh_adapted_b01_vs_b56 <-
                  treatment2 = "B",
                  gen2 = "56")
 
-fwrite(cmh_pvals,
-       "results/cmh_pvals.csv",
-       sep = ",",
-       row.names = FALSE)
+saveRDS(cmh_pvals, "results/cmh_pvals.rds")
+
+# Permutation tests ============================================================
+
 
 # Plotting the results =========================================================
 source("scripts/03_plot_functions.R")
 
-cmh_pvals <- fread("results/cmh_pvals.csv")
+cmh_pvals <- readRDS("results/cmh_pvals.rds")
 perm_pvals <- fread("results/perm_pvals.csv")
 
 y_limit_up <- 200
