@@ -1,6 +1,7 @@
 # Raw data directory
-data/
-results/
+data/snp_tables/*
+data/processed/*
+results/*
 
 ####
 # History files
