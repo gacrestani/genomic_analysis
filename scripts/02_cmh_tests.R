@@ -3,6 +3,7 @@ source("scripts/00_useful_functions.R")
 library(parallel)
 library(poolSeq)
 library(ACER)
+library(qvalue)
 
 ClassicalCmhTest <- function(snp_table,
                              treatment1,
@@ -65,7 +66,7 @@ ClassicalCmhTest <- function(snp_table,
   return(p_list)
 }
 
-getNe <- function(snp_table,
+GetNe <- function(snp_table,
                   treatment1,
                   gen1,
                   treatment2,
@@ -83,18 +84,28 @@ getNe <- function(snp_table,
   
   # Creates list of Ne and calculate values for each replicate
   Ne <- c()
-  for (i in 1:ncol(freq_cmh1)) {
-    unlisted_ne <- estimateNe(p0 = freq_cmh1[,i],
-                              pt = freq_cmh2[,i],
-                              cov0 = cov_cmh1[,i],
-                              covt = cov_cmh2[,i],
-                              t = 20,
-                              method=c("P.planII"),
-                              Ncensus=NA,
-                              poolSize=c(100, 100))
+  for (i in 1:ncol(freq_cmh1)){
+    win_ne <- estimateWndNe(chr = snp_table_regimes$CHROM,
+                            pos = snp_table_regimes$POS,
+                            wndSize = NA, # Window is chromosome
+                            p0 = freq_cmh1[,i],
+                            pt = freq_cmh2[,i],
+                            cov0 = cov_cmh1[,i],
+                            covt = cov_cmh2[,i],
+                            t = 20,
+                            unit = "SNP",
+                            truncAF = 0.05,
+                            method = c("P.planII"),
+                            poolSize = c(100, 100)
+    )
     
-    Ne <- c(Ne, as.integer(unname(unlisted_ne)))
-  }
+    estimated_Ne <- median(filter(win_ne, Np.planII > 0)$Np.planII)
+    
+    pop_name <- gsub(".*_([A-Z]+_rep\\d+).*", "\\1", colnames(freq_cmh1[i]))
+    
+    # cat(pop_name, "estimated Ne:", estimated_Ne, "\n")
+    Ne <- c(Ne, as.integer(unname(estimated_Ne)))
+    }
   
   return(Ne)
 }
@@ -135,7 +146,7 @@ AdaptedCmhTest <- function(snp_table,
   }
   
   # Calculates Ne
-  Ne <- getNe(snp_table = snp_table_filtered,
+  Ne <- GetNe(snp_table = snp_table_filtered,
               treatment1 = treatment1,
               gen1 = gen1,
               treatment2 = treatment2,
@@ -144,9 +155,9 @@ AdaptedCmhTest <- function(snp_table,
   pvals <- adapted.cmh.test(freq = as.matrix(freq),
                             coverage = as.matrix(cov),
                             Ne = Ne,
-                            gen = as.numeric(c(gen1,gen2)), # either c(1,20) or c(20,56) - test both 
+                            gen = as.numeric(c(gen1,gen2)),
                             repl = 1:length(replicates),
-                            poolSize = rep(100, ncol(freq)),
+                            poolSize = rep(c(100, 100), length(replicates)),
                             mincov = 1,
                             MeanStart = TRUE,
                             IntGen = FALSE,

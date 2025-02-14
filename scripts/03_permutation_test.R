@@ -73,6 +73,7 @@ RunPermutationTestIteration <-
     
   }
   
+  pval_list[pval_list == 0] <- 1
   pval_list_log <- -log10(pval_list)
   max_pval <- max(pval_list_log)
   

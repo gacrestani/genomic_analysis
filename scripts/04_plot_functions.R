@@ -1,10 +1,12 @@
 library(ggplot2)
 library(gridExtra)
 
+# 1 - Manhattan Plot ===========================================================
 GetManhattanPlot <-
   function(my_dataframe,
            Y,
            permutation_pvals = NULL,
+           percentage_significance = NULL,
            title = "Manhattan Plot",
            x_label = TRUE,
            y_label = "-log10(p)",
@@ -14,11 +16,12 @@ GetManhattanPlot <-
   
   # This huge function plots a good manhattan plot considering all the settings I have on the arguments.
   # Some of them have been tweaked over the time to reach what I think is an optimal graph for my use case
-  axis_set <- c("2L" = (max(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS))/2,
-                "2R" = (max(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS))/2,
-                "3L" = (max(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS))/2,
-                "3R" = (max(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS))/2,
-                "X"  = (max(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS))/2)
+  axis_set <-
+    c("2L" = (max(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS))/2,
+      "2R" = (max(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS))/2,
+      "3L" = (max(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS))/2,
+      "3R" = (max(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS))/2,
+      "X"  = (max(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS))/2)
   
   p <- ggplot(my_dataframe,
               aes(x = ABS_POS, 
@@ -28,8 +31,10 @@ GetManhattanPlot <-
     scale_x_continuous(labels = names(axis_set), breaks = axis_set) +
     {if (!x_label) scale_x_continuous(labels = NULL, breaks = axis_set)} +
     ylim(y_limit_down, y_limit_up) +
-    {if (palette == "blue") scale_color_manual(values = rep(c("steelblue1", "steelblue4"), unique(length(axis_set))))} +
-    {if (palette == "red") scale_color_manual(values = rep(c("firebrick1", "firebrick4"), unique(length(axis_set))))} +
+    {if (palette == "blue")
+      scale_color_manual(values = rep(c("steelblue1", "steelblue4"), unique(length(axis_set))))} +
+    {if (palette == "red")
+      scale_color_manual(values = rep(c("firebrick1", "firebrick4"), unique(length(axis_set))))} +
     scale_size_continuous(range = c(0.5,3)) +
     labs(x = NULL, y = y_label) +
     theme_minimal() +
@@ -57,9 +62,20 @@ GetManhattanPlot <-
       annotate("text", y=(qt999-2), x=max(my_dataframe$ABS_POS), label = "0.1%", col = "darkorchid")
   }
   
+  if (!is.null(percentage_significance)) {
+    percentage_significance_phased <- 1 - percentage_significance # phase it so we deal with true representation of the percentage
+    
+    threshold <- quantile(Y, probs = percentage_significance_phased)
+    
+    p <- p +
+      geom_hline(yintercept = threshold, col = "red") +
+      annotate("text", y=(threshold-5), x=max(my_dataframe$ABS_POS), label = paste(percentage_significance*100, "%"), col = "red")
+  }
+  
   return(p)
 }
 
+# 2 - Coverage =================================================================
 PlotCoverage <- function(snp_table,
                          treatment,
                          gen,
@@ -96,7 +112,7 @@ PlotCoverage <- function(snp_table,
   do.call(grid.arrange, c(plots, ncol=3, nrow=2))
 }
 
-
+# 3 - Allelic Trajectory =======================================================
 GetAllelicTrajectoryPlot <- function(snp_table,
                                      snp,
                                      treatments = c("OB", "OBO", "nB", "nBO"),
