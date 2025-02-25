@@ -16,3 +16,8 @@ I filter by Drosophila only and I got a few matches.
 [This](https://academic.oup.com/genetics/article/224/3/iyad050/7085646) is also a good paper, but their p-values are higher.
 [This](https://link.springer.com/article/10.1186/s13059-021-02425-9) is a great paper with higher p-values.
 [This](https://www.nature.com/articles/s41467-022-31622-8#data-availability) is an excellent paper, that uses copepods and also have higher p-values. Their code is very messy, though.
+
+# 2025-02-24
+I set my significance level to be 100. That is an extremely high number and I think we will get in trouble with reviewers because of this. However, right now, I can't think of a better solution given the infinitesimal p-values we have.
+
+My code is mostly clean, but not quite.

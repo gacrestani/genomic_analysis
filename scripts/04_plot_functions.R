@@ -17,11 +17,16 @@ GetManhattanPlot <-
   # This huge function plots a good manhattan plot considering all the settings I have on the arguments.
   # Some of them have been tweaked over the time to reach what I think is an optimal graph for my use case
   axis_set <-
-    c("2L" = (max(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS))/2,
-      "2R" = (max(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS))/2,
-      "3L" = (max(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS))/2,
-      "3R" = (max(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS))/2,
-      "X"  = (max(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS) + min(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS))/2)
+    c("2L" = (max(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS) + 
+                min(my_dataframe[my_dataframe$CHROM == "2L", ]$ABS_POS))/2,
+      "2R" = (max(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS) + 
+                min(my_dataframe[my_dataframe$CHROM == "2R", ]$ABS_POS))/2,
+      "3L" = (max(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS) + 
+                min(my_dataframe[my_dataframe$CHROM == "3L", ]$ABS_POS))/2,
+      "3R" = (max(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS) + 
+                min(my_dataframe[my_dataframe$CHROM == "3R", ]$ABS_POS))/2,
+      "X"  = (max(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS) + 
+                min(my_dataframe[my_dataframe$CHROM == "X",  ]$ABS_POS))/2)
   
   p <- ggplot(my_dataframe,
               aes(x = ABS_POS, 
@@ -62,14 +67,11 @@ GetManhattanPlot <-
       annotate("text", y=(qt999-2), x=max(my_dataframe$ABS_POS), label = "0.1%", col = "darkorchid")
   }
   
-  if (!is.null(percentage_significance)) {
-    percentage_significance_phased <- 1 - percentage_significance # phase it so we deal with true representation of the percentage
-    
-    threshold <- quantile(Y, probs = percentage_significance_phased)
-    
+  if (percentage_significance) {
+    threshold <- 100 # or -log10(1e-100)
     p <- p +
-      geom_hline(yintercept = threshold, col = "red") +
-      annotate("text", y=(threshold-5), x=max(my_dataframe$ABS_POS), label = paste(percentage_significance*100, "%"), col = "red")
+      geom_hline(yintercept = threshold, col = "red")
+      #annotate("text", y=(threshold-5), x=max(my_dataframe$ABS_POS), label = paste(percentage_significance*100, "% top SNPs"), col = "red")
   }
   
   return(p)

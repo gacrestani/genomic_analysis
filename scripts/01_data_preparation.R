@@ -114,3 +114,19 @@ ReadAndPrepare <- function(path = "data/snp_tables/filtered_snps_abcd.txt",
   return(snp_table)
   
 }
+
+ScaleSnpTable <- function(snp_table) {
+  
+  # Identify columns
+  alt_cols <- grep("^alt_", names(snp_table), value = TRUE)
+  cov_cols <- grep("^N_", names(snp_table), value = TRUE)
+  
+  # Scale alt_ columns
+  for (i in seq_along(alt_cols)) {
+    snp_table[[alt_cols[i]]] <- snp_table[[alt_cols[i]]] * (100 / snp_table[[cov_cols[i]]])
+  }
+  
+  snp_table[cov_cols] <- 100
+  
+  return(snp_table)
+}

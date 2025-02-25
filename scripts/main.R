@@ -12,6 +12,8 @@ source("scripts/04_plot_functions.R")
 source("scripts/05_pca_analysis.R")
 source("scripts/06_gene_enrichment_analysis.R")
 
+options(scipen=999) # Disable scientific notation
+
 # 1 - Process raw data =========================================================
 snp_table_shahrestani <- as.data.frame(ReadAndPrepare(mode = "shahrestani"))
 saveRDS(snp_table_shahrestani,
@@ -21,6 +23,15 @@ snp_table_regimes <- as.data.frame(ReadAndPrepare(mode = "regimes"))
 saveRDS(snp_table_regimes,
         "data/processed/processed_snps_abcd_regimes.rds")
 
+# Create scaled snp tables
+snp_table_shahrestani_scaled <- ScaleSnpTable(snp_table_shahrestani)
+saveRDS(snp_table_shahrestani_scaled,
+        "data/processed/processed_snps_abcd_shahrestani_scaled.rds")
+
+snp_table_regimes_scaled <- ScaleSnpTable(snp_table_regimes)
+saveRDS(snp_table_regimes_scaled,
+        "data/processed/processed_snps_abcd_regimes_scaled.rds")
+
 # 2 - CMH tests ================================================================
 snp_table_shahrestani <- 
   readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
@@ -29,148 +40,223 @@ snp_table_regimes <-
   readRDS("data/processed/processed_snps_abcd_regimes.rds")
 
 # Initiates an empty dataframe with the same number of rows as our snp tables
-cmh_pvals <- data.frame(matrix(NA,
-                               nrow = nrow(snp_table_shahrestani),
-                               ncol = 0))
+cmh_pvals <-
+  data.frame(matrix(NA,
+                    nrow = nrow(snp_table_shahrestani),
+                    ncol = 0))
 
 cmh_pvals$ABS_POS <- snp_table_shahrestani$ABS_POS
 cmh_pvals$CHROM <- snp_table_shahrestani$CHROM
 
-# Classical CMH test
+# 2.1 - Unscaled data ==========================================================
+# 2.1.1 - Classical CMH test ===================================================
 # NOTE: These functions take a while to run (even running in parallel)
 cmh_pvals$cmh_classic_obo01_vs_obo20 <-
-  ClassicalCmhTest(snp_table = snp_table_shahrestani,
-                   treatment1 = "OBO",
-                   gen1 = "01",
-                   treatment2 = "OBO",
-                   gen2 = "20")
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OBO",
+    gen1 = "01",
+    treatment2 = "OBO",
+    gen2 = "20")
 
 cmh_pvals$cmh_classic_ob01_vs_ob20 <-
-  ClassicalCmhTest(snp_table = snp_table_shahrestani,
-                   treatment1 = "OB",
-                   gen1 = "01",
-                   treatment2 = "OB",
-                   gen2 = "20")
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OB",
+    gen1 = "01",
+    treatment2 = "OB",
+    gen2 = "20")
 
 cmh_pvals$cmh_classic_nbo01_vs_nbo56 <-
-  ClassicalCmhTest(snp_table = snp_table_shahrestani,
-                   treatment1 = "nBO",
-                   gen1 = "01",
-                   treatment2 = "nBO",
-                   gen2 = "56")
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
 
 cmh_pvals$cmh_classic_nb01_vs_nb56 <-
-  ClassicalCmhTest(snp_table = snp_table_shahrestani,
-                   treatment1 = "nB",
-                   gen1 = "01",
-                   treatment2 = "nB",
-                   gen2 = "56")
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nB",
+    gen1 = "01",
+    treatment2 = "nB",
+    gen2 = "56")
 
 cmh_pvals$cmh_classic_o01_vs_o20 <-
-  ClassicalCmhTest(snp_table = snp_table_regimes,
-                   treatment1 = "O",
-                   gen1 = "01",
-                   treatment2 = "O",
-                   gen2 = "20")
+  ClassicalCmhTest(
+    snp_table = snp_table_regimes,
+    treatment1 = "O",
+    gen1 = "01",
+    treatment2 = "O",
+    gen2 = "20")
 
 cmh_pvals$cmh_classic_b01_vs_b56 <-
-  ClassicalCmhTest(snp_table = snp_table_regimes,
-                   treatment1 = "B",
-                   gen1 = "01",
-                   treatment2 = "B",
-                   gen2 = "56")
+  ClassicalCmhTest(
+    snp_table = snp_table_regimes,
+    treatment1 = "B",
+    gen1 = "01",
+    treatment2 = "B",
+    gen2 = "56")
 
-# Adapted CMH test
+# 2.1.2 - Adapted CMH test =====================================================
 # These are faster than the classical tests
 cmh_pvals$cmh_adapted_obo01_vs_obo20 <-
-  AdaptedCmhTest(snp_table = snp_table_shahrestani,
-                 treatment1 = "OBO",
-                 gen1 = "01",
-                 treatment2 = "OBO",
-                 gen2 = "20")
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OBO",
+    gen1 = "01",
+    treatment2 = "OBO",
+    gen2 = "20")
 
 cmh_pvals$cmh_adapted_ob01_vs_ob20 <-
-  AdaptedCmhTest(snp_table = snp_table_shahrestani,
-                 treatment1 = "OB",
-                 gen1 = "01",
-                 treatment2 = "OB",
-                 gen2 = "20")
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OB",
+    gen1 = "01",
+    treatment2 = "OB",
+    gen2 = "20")
 
 cmh_pvals$cmh_adapted_nbo01_vs_nbo56 <-
-  AdaptedCmhTest(snp_table = snp_table_shahrestani,
-                 treatment1 = "nBO",
-                 gen1 = "01",
-                 treatment2 = "nBO",
-                 gen2 = "56")
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
 
 cmh_pvals$cmh_adapted_nb01_vs_nb56 <-
-  AdaptedCmhTest(snp_table = snp_table_shahrestani,
-                 treatment1 = "nB",
-                 gen1 = "01",
-                 treatment2 = "nB",
-                 gen2 = "56")
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nB",
+    gen1 = "01",
+    treatment2 = "nB",
+    gen2 = "56")
 
 cmh_pvals$cmh_adapted_o01_vs_o20 <-
-  AdaptedCmhTest(snp_table = snp_table_regimes,
-                 treatment1 = "O",
-                 gen1 = "01",
-                 treatment2 = "O",
-                 gen2 = "20")
+  AdaptedCmhTest(
+    snp_table = snp_table_regimes,
+    treatment1 = "O",
+    gen1 = "01",
+    treatment2 = "O",
+    gen2 = "20")
 
 cmh_pvals$cmh_adapted_b01_vs_b56 <-
-  AdaptedCmhTest(snp_table = snp_table_regimes,
-                 treatment1 = "B",
-                 gen1 = "01",
-                 treatment2 = "B",
-                 gen2 = "56")
+  AdaptedCmhTest(
+    snp_table = snp_table_regimes,
+    treatment1 = "B",
+    gen1 = "01",
+    treatment2 = "B",
+    gen2 = "56")
+
+# 2.2 - Scaled data ============================================================
+snp_table_shahrestani_scaled <- 
+  readRDS("data/processed/processed_snps_abcd_shahrestani_scaled.rds")
+
+snp_table_regimes_scaled <-
+  readRDS("data/processed/processed_snps_abcd_regimes_scaled.rds")
+
+# 2.2.1 - Classical CMH test ===================================================
+# NOTE: These functions take a while
+cmh_pvals$cmh_classic_obo01_vs_obo20_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "OBO",
+    gen1 = "01",
+    treatment2 = "OBO",
+    gen2 = "20")
+
+cmh_pvals$cmh_classic_ob01_vs_ob20_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "OB",
+    gen1 = "01",
+    treatment2 = "OB",
+    gen2 = "20")
+
+cmh_pvals$cmh_classic_nbo01_vs_nbo56_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
+
+cmh_pvals$cmh_classic_nb01_vs_nb56_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "nB",
+    gen1 = "01",
+    treatment2 = "nB",
+    gen2 = "56")
+
+cmh_pvals$cmh_classic_o01_vs_o20_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_regimes_scaled,
+    treatment1 = "O",
+    gen1 = "01",
+    treatment2 = "O",
+    gen2 = "20")
+
+cmh_pvals$cmh_classic_b01_vs_b56_scaled <-
+  ClassicalCmhTest(
+    snp_table = snp_table_regimes_scaled,
+    treatment1 = "B",
+    gen1 = "01",
+    treatment2 = "B",
+    gen2 = "56")
+
+# 2.2.2 - Adapted CMH test =====================================================
+# These are faster than the classical tests
+cmh_pvals$cmh_adapted_obo01_vs_obo20_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "OBO",
+    gen1 = "01",
+    treatment2 = "OBO",
+    gen2 = "20")
+
+cmh_pvals$cmh_adapted_ob01_vs_ob20_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "OB",
+    gen1 = "01",
+    treatment2 = "OB",
+    gen2 = "20")
+
+cmh_pvals$cmh_adapted_nbo01_vs_nbo56_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
+
+cmh_pvals$cmh_adapted_nb01_vs_nb56_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_shahrestani_scaled,
+    treatment1 = "nB",
+    gen1 = "01",
+    treatment2 = "nB",
+    gen2 = "56")
+
+cmh_pvals$cmh_adapted_o01_vs_o20_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_regimes_scaled,
+    treatment1 = "O",
+    gen1 = "01",
+    treatment2 = "O",
+    gen2 = "20")
+
+cmh_pvals$cmh_adapted_b01_vs_b56_scaled <-
+  AdaptedCmhTest(
+    snp_table = snp_table_regimes_scaled,
+    treatment1 = "B",
+    gen1 = "01",
+    treatment2 = "B",
+    gen2 = "56")
 
 saveRDS(cmh_pvals, "results/cmh_pvals.rds")
-
-# I have p-values so small that the multiple-test correction methods used by
-# other papers are not suitable. If I apply the q-value method and consider
-# everything < 0.05 as significant, the whole genome will have significant snps.
-# Possible problems: my Ne estimationsa are VERY low, like 30. This does not
-# represent reality. I should check in with Molly about this
-
-# # Q-value experiment
-# q_values <- qvalue(cmh_pvals$cmh_classic_o01_vs_o20)
-# 
-# plot_cmh_classic_O_q <-
-#   GetManhattanPlot(my_dataframe = cmh_pvals,
-#                    Y = -log10(q_values$qvalue),
-#                    permutation_pvals = perm_pvals$o,
-#                    title = "Classical CMH test: O gen01 vs O gen20 - q-value",
-#                    x_label = TRUE,
-#                    y_label = NULL,
-#                    palette = "blue",
-#                    y_limit_up = y_limit_up,
-#                    y_limit_down = 0)
-# ggsave("results/figures/cmh_classic_O_q.png",
-#        plot = plot_cmh_classic_O_q,
-#        width = 1600,
-#        height = 1200,
-#        bg = "white",
-#        units = "px")
-# 
-# sig <- filter(q_values$qvalues, qval < 0.05)
-# 
-# q_vals <- q_values$qvalues
-# sig <- q_vals[q_vals < 0.05]
-# 
-# q_values_adapted <- qvalue(cmh_pvals$cmh_adapted_o01_vs_o20)
-# plot(q_values_adapted)
-# 
-# plot(x = cmh_pvals$cmh_adapted_o01_vs_o20, y = q_values_adapted$qvalues)
-# 
-# plot(x = cmh_pvals$ABS_POS, y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20))
-# abline(h = -log10(0.05/length(cmh_pvals$cmh_classic_o01_vs_o20)), col = "red")
-# 
-# plot(x = cmh_pvals$ABS_POS, y = -log10(q_values_adapted$qvalue))
-# abline(h = -log10(0.05), col = "red")
-# 
-# q001 <- quantile(as.numeric(cmh_pvals$cmh_adapted_o01_vs_o20), probs = 0.001)
-# plot(x = cmh_pvals$ABS_POS, y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20))
-# abline(h = -log10(q001), col = "red")
 
 # 3 - Permutation tests ========================================================
 snp_table_shahrestani <-
@@ -264,8 +350,6 @@ o   <- fread("results/permutation_test/classic_O01vsO20.csv",     header = FALSE
 perm_pvals <- cbind(obo,ob,nbo,nb,o,b)
 colnames(perm_pvals) <- c("obo", "ob", "nbo", "nb", "o", "b")
 
-fwrite(perm_pvals, file = "results/perm_pvals.csv")
-
 # 3.2 - Adapted ################################################################
 n <- 1000
 sapply(
@@ -341,128 +425,799 @@ sapply(
 )
 
 # Read files and create a new csv with all needed information
-obo <- fread("results/permutation_test/adapted_OBO01vsOBO20.csv", header = FALSE)
-ob  <- fread("results/permutation_test/adapted_OB01vsOB20.csv",   header = FALSE)
-nbo <- fread("results/permutation_test/adapted_nBO01vsnBO56.csv", header = FALSE)
-nb  <- fread("results/permutation_test/adapted_nB01vsnB56.csv",   header = FALSE)
-b   <- fread("results/permutation_test/adapted_B01vsB56.csv",     header = FALSE)
-o   <- fread("results/permutation_test/adapted_O01vsO20.csv",     header = FALSE)
+obo_adapted <- fread("results/permutation_test/adapted_OBO01vsOBO20.csv", header = FALSE)
+ob_adapted  <- fread("results/permutation_test/adapted_OB01vsOB20.csv",   header = FALSE)
+nbo_adapted <- fread("results/permutation_test/adapted_nBO01vsnBO56.csv", header = FALSE)
+nb_adapted  <- fread("results/permutation_test/adapted_nB01vsnB56.csv",   header = FALSE)
+b_adapted   <- fread("results/permutation_test/adapted_B01vsB56.csv",     header = FALSE)
+o_adapted   <- fread("results/permutation_test/adapted_O01vsO20.csv",     header = FALSE)
 
-perm_pvals <- cbind(obo,ob,nbo,nb,o,b)
-colnames(perm_pvals) <- c("obo", "ob", "nbo", "nb", "o", "b")
+perm_pvals_adapted <-
+  cbind(
+    obo_adapted,
+    ob_adapted,
+    nbo_adapted,
+    nb_adapted,
+    o_adapted,
+    b_adapted)
+
+colnames(perm_pvals_adapted) <-
+  c("obo_adapted",
+    "ob_adapted",
+    "nbo_adapted",
+    "nb_adapted",
+    "o_adapted",
+    "b_adapted")
+
+perm_pvals <- cbind(perm_pvals, perm_pvals_adapted)
 
 fwrite(perm_pvals, file = "results/perm_pvals.csv")
-
-
-
 
 # 4 - Plotting the results =====================================================
 cmh_pvals <- readRDS("results/cmh_pvals.rds")
 perm_pvals <- fread("results/perm_pvals.csv")
 
-y_limit_up <- 200
+y_limit_up <- 220
 
-# 4.1 - Classic CMH ====
+width <- 7740
+height <- 1440
+
+# 4.1 - Crude ==================================================================
+# 4.1.1 - Classic CMH ==========================================================
 plot_cmh_classic_OBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20),
+    permutation_pvals = perm_pvals$obo,
+    title = "Classical CMH test: OBO gen01 vs OBO gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_OBO.png",
+  plot = plot_cmh_classic_OBO,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_classic_OB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20),
+    permutation_pvals = perm_pvals$ob,
+    title = "Classical CMH test: OB gen01 vs OB gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_OB.png",
+  plot = plot_cmh_classic_OB,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_classic_nBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_nbo01_vs_nbo56),
+    permutation_pvals = perm_pvals$nbo,
+    title = "Classical CMH test: nBO gen01 vs nBO gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_nBO.png",
+  plot = plot_cmh_classic_nBO,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_classic_nB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_nb01_vs_nb56),
+    permutation_pvals = perm_pvals$nb,
+    title = "Classical CMH test: nB gen01 vs nB gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_nB.png",
+  plot = plot_cmh_classic_nB,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_classic_O <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20),
+    permutation_pvals = perm_pvals$o,
+    title = "Classical CMH test: O gen01 vs O gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_O.png",
+  plot = plot_cmh_classic_O,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_classic_B <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_b01_vs_b56),
+    permutation_pvals = perm_pvals$b,
+    title = "Classical CMH test: B gen01 vs B gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/classic/cmh_classic_B.png",
+  plot = plot_cmh_classic_B,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
+
+grid_plot_cmh_classic_OBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20),
+    permutation_pvals = perm_pvals$obo,
+    title = "Classical CMH test: OBO gen01 vs OBO gen20",
+    x_label = FALSE,
+    y_label = NULL,
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+grid_plot_cmh_classic_OB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20),
+    permutation_pvals = perm_pvals$ob,
+    title = "Classical CMH test: OB gen01 vs OB gen20",
+    x_label = FALSE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+grid_plot_cmh_classic_O <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20),
+    permutation_pvals = NULL,
+    title = "Classical CMH test: O gen01 vs O gen20",
+    x_label = TRUE,
+    y_label = NULL,
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+png(
+  filename = "results/figures/cmh_crude/classic/cmh_classic_OBO_OB_O_piled.png",
+  width = 1800,
+  height = 900)
+
+grid.arrange(
+  grid_plot_cmh_classic_OBO,
+  grid_plot_cmh_classic_OB,
+  grid_plot_cmh_classic_O,
+  layout_matrix = layout)
+
+dev.off()
+
+# 4.1.2 - Adapted CMH ==========================================================
+plot_cmh_adapted_OBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: OBO gen01 vs OBO gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_OBO.png",
+  plot = plot_cmh_adapted_OBO,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_adapted_OB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: OB gen01 vs OB gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_OB.png",
+  plot = plot_cmh_adapted_OB,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_adapted_nBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_nbo01_vs_nbo56),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: nBO gen01 vs nBO gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_nBO.png",
+  plot = plot_cmh_adapted_nBO,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_adapted_nB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_nb01_vs_nb56),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: nB gen01 vs nB gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_nB.png",
+  plot = plot_cmh_adapted_nB,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_adapted_O <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: O gen01 vs O gen20",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_O.png",
+  plot = plot_cmh_adapted_O,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+plot_cmh_adapted_B <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_b01_vs_b56),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: B gen01 vs B gen56",
+    x_label = TRUE,
+    y_label = "-log10(p-value)",
+    palette = "red",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+ggsave(
+  "results/figures/cmh_crude/adapted/cmh_adapted_B.png",
+  plot = plot_cmh_adapted_B,
+  width = width,
+  height = height,
+  bg = "white",
+  units = "px")
+
+layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
+
+grid_plot_cmh_adapted_OBO <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: OBO gen01 vs OBO gen20",
+    x_label = FALSE,
+    y_label = NULL,
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+grid_plot_cmh_adapted_OB <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: OB gen01 vs OB gen20",
+    x_label = FALSE,
+    y_label = "-log10(p-value)",
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+grid_plot_cmh_adapted_O <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test: O gen01 vs O gen20",
+    x_label = TRUE,
+    y_label = NULL,
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+png(
+  filename = "results/figures/cmh_crude/adapted/cmh_adapted_OBO_OB_O_piled.png",
+  width = 1800,
+  height = 900)
+
+grid.arrange(
+  grid_plot_cmh_adapted_OBO,
+  grid_plot_cmh_adapted_OB,
+  grid_plot_cmh_adapted_O,
+  layout_matrix = layout)
+
+dev.off()
+
+# 4.2 - Scaled data ============================================================
+# 4.2.1 - Classic CMH Scaled ===================================================
+plot_cmh_classic_OBO_scaled <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20),
-           permutation_pvals = perm_pvals$obo,
-           title = "Classical CMH test: OBO gen01 vs OBO gen20",
+           Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: OBO gen01 vs OBO gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_OBO_scaled.png",
+       plot = plot_cmh_classic_OBO_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_classic_OB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: OB gen01 vs OB gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_OB_scaled.png",
+       plot = plot_cmh_classic_OB_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_classic_nBO_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_nbo01_vs_nbo56_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: nBO gen01 vs nBO gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_nBO_scaled.png",
+       plot = plot_cmh_classic_nBO_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_classic_nB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_nb01_vs_nb56_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: nB gen01 vs nB gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_nB_scaled.png",
+       plot = plot_cmh_classic_nB_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_classic_O_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: O gen01 vs O gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_O_scaled.png",
+       plot = plot_cmh_classic_O_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_classic_B_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_b01_vs_b56_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: B gen01 vs B gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/classic/cmh_classic_B_scaled.png",
+       plot = plot_cmh_classic_B_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+# Grid arrange  
+layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
+
+grid_plot_cmh_classic_OBO_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: OBO gen01 vs OBO gen20",
+           x_label = FALSE,
+           y_label = NULL,
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+
+grid_plot_cmh_classic_OB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: OB gen01 vs OB gen20",
+           x_label = FALSE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+
+grid_plot_cmh_classic_O_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20_scaled),
+           permutation_pvals = NULL,
+           title = "Classical CMH test, scaled: O gen01 vs O gen20",
            x_label = TRUE,
            y_label = NULL,
            palette = "blue",
            y_limit_up = y_limit_up,
            y_limit_down = 0)
-ggsave("results/figures/cmh_classic_OBO.png",
+
+# Save grid
+png(filename = "results/figures/cmh_scaled/classic/cmh_classic_OBO_OB_O_scaled_piled.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(grid_plot_cmh_classic_OBO_scaled,
+             grid_plot_cmh_classic_OB_scaled,
+             grid_plot_cmh_classic_O_scaled,
+             layout_matrix = layout)
+
+dev.off()
+
+# 4.2.2 - Adapted CMH Scaled ===================================================
+plot_cmh_adapted_OBO_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: OBO gen01 vs OBO gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_OBO_scaled.png",
+       plot = plot_cmh_adapted_OBO_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_adapted_OB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: OB gen01 vs OB gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_OB_scaled.png",
+       plot = plot_cmh_adapted_OB_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_adapted_nBO_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_nbo01_vs_nbo56_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: nBO gen01 vs nBO gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_nBO_scaled.png",
+       plot = plot_cmh_adapted_nBO_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_adapted_nB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_nb01_vs_nb56_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: nB gen01 vs nB gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_nB_scaled.png",
+       plot = plot_cmh_adapted_nB_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_adapted_O_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: O gen01 vs O gen20",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_O_scaled.png",
+       plot = plot_cmh_adapted_O_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+plot_cmh_adapted_B_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_b01_vs_b56_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: B gen01 vs B gen56",
+           x_label = TRUE,
+           y_label = "-log10(p-value)",
+           palette = "red",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+ggsave("results/figures/cmh_scaled/adapted/cmh_adapted_B_scaled.png",
+       plot = plot_cmh_adapted_B_scaled,
+       width = width,
+       height = height,
+       bg = "white",
+       units = "px")
+
+# Grid arrange
+layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
+
+grid_plot_cmh_adapted_OBO_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: OBO gen01 vs OBO gen20",
+           x_label = FALSE,
+           y_label = NULL,
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+
+grid_plot_cmh_adapted_OB_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: OB gen01 vs OB gen20",
+           x_label = FALSE,
+           y_label = "-log10(p-value)",
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+
+grid_plot_cmh_adapted_O_scaled <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+           Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20_scaled),
+           permutation_pvals = NULL,
+           percentage_significance = TRUE,
+           title = "Adapted CMH test, scaled: O gen01 vs O gen20",
+           x_label = TRUE,
+           y_label = NULL,
+           palette = "blue",
+           y_limit_up = y_limit_up,
+           y_limit_down = 0)
+
+# Save grid
+png(filename = "results/figures/cmh_scaled/adapted/cmh_adapted_OBO_OB_O_scaled_piled.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(grid_plot_cmh_adapted_OBO_scaled,
+             grid_plot_cmh_adapted_OB_scaled,
+             grid_plot_cmh_adapted_O_scaled,
+             layout_matrix = layout)
+
+dev.off()
+
+# 4.3 - FDR Corrected ==========================================================
+# 4.3.1 - Classic CMH FDR ======================================================
+plot_cmh_classic_OBO <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_obo01_vs_obo20, method = "BH")),
+                   permutation_pvals = perm_pvals$obo,
+                   title = "Classical CMH test, FDR corrected: OBO gen01 vs OBO gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_OBO.png",
        plot = plot_cmh_classic_OBO,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_classic_OB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20),
-           permutation_pvals = perm_pvals$ob,
-           title = "Classical CMH test: OB gen01 vs OB gen20",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_classic_OB.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_ob01_vs_ob20, method = "BH")),
+                   permutation_pvals = perm_pvals$ob,
+                   title = "Classical CMH test, FDR corrected: OB gen01 vs OB gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_OB.png",
        plot = plot_cmh_classic_OB,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_classic_nBO <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_nbo01_vs_nbo56),
-           permutation_pvals = perm_pvals$nbo,
-           title = "Classical CMH test: nBO gen01 vs nBO gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_classic_nBO.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_nbo01_vs_nbo56, method = "BH")),
+                   permutation_pvals = perm_pvals$nbo,
+                   title = "Classical CMH test, FDR corrected: nBO gen01 vs nBO gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_nBO.png",
        plot = plot_cmh_classic_nBO,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_classic_nB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_nb01_vs_nb56),
-           permutation_pvals = perm_pvals$nb,
-           title = "Classical CMH test: nB gen01 vs nB gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_classic_nB.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_nb01_vs_nb56, method = "BH")),
+                   permutation_pvals = perm_pvals$nb,
+                   title = "Classical CMH test, FDR corrected: nB gen01 vs nB gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_nB.png",
        plot = plot_cmh_classic_nB,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 
 plot_cmh_classic_O <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20),
-           permutation_pvals = perm_pvals$o,
-           title = "Classical CMH test: O gen01 vs O gen20",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_classic_O.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_o01_vs_o20, method = "BH")),
+                   permutation_pvals = perm_pvals$o,
+                   title = "Classical CMH test, FDR corrected: O gen01 vs O gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_O.png",
        plot = plot_cmh_classic_O,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_classic_B <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_b01_vs_b56),
-           permutation_pvals = perm_pvals$b,
-           title = "Classical CMH test: B gen01 vs B gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_classic_B.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_b01_vs_b56, method = "BH")),
+                   permutation_pvals = perm_pvals$b,
+                   title = "Classical CMH test, FDR corrected: B gen01 vs B gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/classic/cmh_classic_B.png",
        plot = plot_cmh_classic_B,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
@@ -471,39 +1226,39 @@ layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
 
 grid_plot_cmh_classic_OBO <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20),
-           permutation_pvals = perm_pvals$obo,
-           title = "Classical CMH test: OBO gen01 vs OBO gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_obo01_vs_obo20, method = "BH")),
+                   permutation_pvals = perm_pvals$obo,
+                   title = "Classical CMH test, FDR corrected: OBO gen01 vs OBO gen20",
+                   x_label = FALSE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 grid_plot_cmh_classic_OB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20),
-           permutation_pvals = perm_pvals$ob,
-           title = "Classical CMH test: OB gen01 vs OB gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_ob01_vs_ob20, method = "BH")),
+                   permutation_pvals = perm_pvals$ob,
+                   title = "Classical CMH test, FDR corrected: OB gen01 vs OB gen20",
+                   x_label = FALSE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 grid_plot_cmh_classic_O <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20),
-           permutation_pvals = perm_pvals$o,
-           title = "Classical CMH test: O gen01 vs O gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_classic_o01_vs_o20, method = "BH")),
+                   permutation_pvals = NULL,
+                   title = "Classical CMH test, FDR corrected: O gen01 vs O gen20",
+                   x_label = TRUE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 # Save grid
-png(filename = "results/figures/cmh_classic_OBO_OB_O_piled.png",
+png(filename = "results/figures/cmh_fdr/classic/cmh_classic_OBO_OB_O_piled.png",
     width = 1800,
     height = 900)
 
@@ -514,112 +1269,112 @@ grid.arrange(grid_plot_cmh_classic_OBO,
 
 dev.off()
 
-# 4.2 - Adapted CMH ====
+# 4.3.2 - Adapted CMH FDR ======================================================
 plot_cmh_adapted_OBO <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: OBO gen01 vs OBO gen20",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_OBO.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_obo01_vs_obo20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: OBO gen01 vs OBO gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_OBO.png",
        plot = plot_cmh_adapted_OBO,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_adapted_OB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: OB gen01 vs OB gen20",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_OB.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_ob01_vs_ob20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: OB gen01 vs OB gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_OB.png",
        plot = plot_cmh_adapted_OB,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_adapted_nBO <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_nbo01_vs_nbo56),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: nBO gen01 vs nBO gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_nBO.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_nbo01_vs_nbo56, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: nBO gen01 vs nBO gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_nBO.png",
        plot = plot_cmh_adapted_nBO,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_adapted_nB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_nb01_vs_nb56),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: nB gen01 vs nB gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_nB.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_nb01_vs_nb56, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: nB gen01 vs nB gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_nB.png",
        plot = plot_cmh_adapted_nB,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_adapted_O <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: O gen01 vs O gen20",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_O.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_o01_vs_o20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: O gen01 vs O gen20",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_O.png",
        plot = plot_cmh_adapted_O,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
 plot_cmh_adapted_B <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_b01_vs_b56),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: B gen01 vs B gen56",
-           x_label = TRUE,
-           y_label = NULL,
-           palette = "red",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
-ggsave("results/figures/cmh_adapted_B.png",
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_b01_vs_b56, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: B gen01 vs B gen56",
+                   x_label = TRUE,
+                   y_label = "-log10(p-value)",
+                   palette = "red",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+ggsave("results/figures/cmh_fdr/adapted/cmh_adapted_B.png",
        plot = plot_cmh_adapted_B,
-       width = 1600,
-       height = 1200,
+       width = width,
+       height = height,
        bg = "white",
        units = "px")
 
@@ -628,42 +1383,42 @@ layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
 
 grid_plot_cmh_adapted_OBO <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: OBO gen01 vs OBO gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_obo01_vs_obo20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: OBO gen01 vs OBO gen20",
+                   x_label = FALSE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 grid_plot_cmh_adapted_OB <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: OB gen01 vs OB gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_ob01_vs_ob20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: OB gen01 vs OB gen20",
+                   x_label = FALSE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 grid_plot_cmh_adapted_O <-
   GetManhattanPlot(my_dataframe = cmh_pvals,
-           Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20),
-           permutation_pvals = NULL,
-           percentage_significance = 0.001,
-           title = "Adapted CMH test: O gen01 vs O gen20",
-           x_label = FALSE,
-           y_label = NULL,
-           palette = "blue",
-           y_limit_up = y_limit_up,
-           y_limit_down = 0)
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_o01_vs_o20, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, FDR corrected: O gen01 vs O gen20",
+                   x_label = TRUE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
 
 # Save grid
-png(filename = "results/figures/cmh_adapted_OBO_OB_O_piled.png",
+png(filename = "results/figures/cmh_fdr/adapted/cmh_adapted_OBO_OB_O_piled.png",
     width = 1800,
     height = 900)
 
@@ -673,6 +1428,16 @@ grid.arrange(grid_plot_cmh_adapted_OBO,
              layout_matrix = layout)
 
 dev.off()
+
+# 4.4 - QQ Plots ================================================================
+
+n <- nrow(cmh_pvals)
+
+# Create a vector of N values evenly spaces from 1 to 1 / N
+N <- sort(-log10(seq(1, n) / n))
+
+
+p <- sort(-log10(cmh_pvals$cmh_adapted_o01_vs_o20_scaled))
 
 # 5 - PCA Analysis =============================================================
 snp_table_shahrestani <- 
@@ -690,7 +1455,7 @@ ggsave("results/figures/pca_plot_labeled.png",
 pca_plot_unlabeled <- PlotPca(pca_data, label = FALSE)
 ggsave("results/figures/pca_plot_unlabeled.png",
        plot = pca_plot_unlabeled,
-       width = 1600,
+       width = width,
        height = 1600,
        units = "px")
 
