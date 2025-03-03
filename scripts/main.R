@@ -49,105 +49,55 @@ cmh_pvals$ABS_POS <- snp_table_shahrestani$ABS_POS
 cmh_pvals$CHROM <- snp_table_shahrestani$CHROM
 
 # 2.1 - Unscaled data ==========================================================
-# 2.1.1 - Classical CMH test ===================================================
 # NOTE: These functions take a while to run (even running in parallel)
-cmh_pvals$cmh_classic_obo01_vs_obo20 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OBO",
-    gen1 = "01",
-    treatment2 = "OBO",
-    gen2 = "20")
 
-cmh_pvals$cmh_classic_ob01_vs_ob20 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OB",
-    gen1 = "01",
-    treatment2 = "OB",
-    gen2 = "20")
+treatments <- c("OBO", "OB", "nBO", "nB", "O", "B")
+gen2 <- c("20", "20", "56", "56", "20", "56")
 
-cmh_pvals$cmh_classic_nbo01_vs_nbo56 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
+# Classic CMH
+# Takes a while to run
+for (i in 1:length(treatments)) {
+  
+  # Define if using regimes or shahrestani snp table
+  ifelse(
+    treatments[i] == "O" | treatments[i] == "B",
+    snp_table_iter <- snp_table_regimes,
+    snp_table_iter <- snp_table_shahrestani
+  )
+  
+  # Run test
+  cmh_pvals[[paste0("cmh_classic_", treatments[i])]] <-
+    ClassicalCmhTest(
+      snp_table = snp_table_iter,
+      treatment1 = treatments[i])
+  
+  # Print test name completed
+  print(paste("Classic CMH test done:"), treatment)
+  
+}
 
-cmh_pvals$cmh_classic_nb01_vs_nb56 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nB",
-    gen1 = "01",
-    treatment2 = "nB",
-    gen2 = "56")
-
-cmh_pvals$cmh_classic_o01_vs_o20 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_regimes,
-    treatment1 = "O",
-    gen1 = "01",
-    treatment2 = "O",
-    gen2 = "20")
-
-cmh_pvals$cmh_classic_b01_vs_b56 <-
-  ClassicalCmhTest(
-    snp_table = snp_table_regimes,
-    treatment1 = "B",
-    gen1 = "01",
-    treatment2 = "B",
-    gen2 = "56")
-
-# 2.1.2 - Adapted CMH test =====================================================
+# Adapted CMH
 # These are faster than the classical tests
-cmh_pvals$cmh_adapted_obo01_vs_obo20 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OBO",
-    gen1 = "01",
-    treatment2 = "OBO",
-    gen2 = "20")
+for (i in 1:length(treatments)) {
+  
+  # Define if using regimes or shahrestani snp table
+  ifelse(
+    treatments[i] == "O" | treatments[i] == "B",
+    snp_table_iter <- snp_table_regimes,
+    snp_table_iter <- snp_table_shahrestani
+  )
+  
+  # Run test
+  cmh_pvals[[paste0("cmh_adapted_", treatments[i])]] <-
+    AdaptedCmhTest(
+      snp_table = snp_table_iter,
+      treatment1 = treatments[i])
+  
+  # Print test name completed
+  print(paste("Classic CMH test done:", treatments[i]))
+  
+}
 
-cmh_pvals$cmh_adapted_ob01_vs_ob20 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OB",
-    gen1 = "01",
-    treatment2 = "OB",
-    gen2 = "20")
-
-cmh_pvals$cmh_adapted_nbo01_vs_nbo56 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
-
-cmh_pvals$cmh_adapted_nb01_vs_nb56 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nB",
-    gen1 = "01",
-    treatment2 = "nB",
-    gen2 = "56")
-
-cmh_pvals$cmh_adapted_o01_vs_o20 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_regimes,
-    treatment1 = "O",
-    gen1 = "01",
-    treatment2 = "O",
-    gen2 = "20")
-
-cmh_pvals$cmh_adapted_b01_vs_b56 <-
-  AdaptedCmhTest(
-    snp_table = snp_table_regimes,
-    treatment1 = "B",
-    gen1 = "01",
-    treatment2 = "B",
-    gen2 = "56")
 
 # 2.2 - Scaled data ============================================================
 snp_table_shahrestani_scaled <- 
@@ -156,107 +106,53 @@ snp_table_shahrestani_scaled <-
 snp_table_regimes_scaled <-
   readRDS("data/processed/processed_snps_abcd_regimes_scaled.rds")
 
-# 2.2.1 - Classical CMH test ===================================================
-# NOTE: These functions take a while
-cmh_pvals$cmh_classic_obo01_vs_obo20_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "OBO",
-    gen1 = "01",
-    treatment2 = "OBO",
-    gen2 = "20")
+treatments <- c("OBO", "OB", "nBO", "nB", "O", "B")
+gen2 <- c("20", "20", "56", "56", "20", "56")
 
-cmh_pvals$cmh_classic_ob01_vs_ob20_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "OB",
-    gen1 = "01",
-    treatment2 = "OB",
-    gen2 = "20")
+# Classic CMH
+# Takes a while to run
+for (i in 1:length(treatments)) {
+  
+  # Define if using regimes or shahrestani snp table
+  ifelse(
+    treatments[i] == "O" | treatments[i] == "B",
+    snp_table_iter <- snp_table_regimes_scaled,
+    snp_table_iter <- snp_table_shahrestani_scaled
+  )
+  
+  # Run test
+  cmh_pvals[[paste0("cmh_classic_scaled_", treatments[i])]] <-
+    ClassicalCmhTest(
+      snp_table = snp_table_iter,
+      treatment1 = treatments[i])
+  
+  # Print test name completed
+  print(paste("Classic CMH test done:"), treatment)
+  
+}
 
-cmh_pvals$cmh_classic_nbo01_vs_nbo56_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
-
-cmh_pvals$cmh_classic_nb01_vs_nb56_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "nB",
-    gen1 = "01",
-    treatment2 = "nB",
-    gen2 = "56")
-
-cmh_pvals$cmh_classic_o01_vs_o20_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_regimes_scaled,
-    treatment1 = "O",
-    gen1 = "01",
-    treatment2 = "O",
-    gen2 = "20")
-
-cmh_pvals$cmh_classic_b01_vs_b56_scaled <-
-  ClassicalCmhTest(
-    snp_table = snp_table_regimes_scaled,
-    treatment1 = "B",
-    gen1 = "01",
-    treatment2 = "B",
-    gen2 = "56")
-
-# 2.2.2 - Adapted CMH test =====================================================
+# Adapted CMH
 # These are faster than the classical tests
-cmh_pvals$cmh_adapted_obo01_vs_obo20_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "OBO",
-    gen1 = "01",
-    treatment2 = "OBO",
-    gen2 = "20")
+for (i in 1:length(treatments)) {
+  
+  # Define if using regimes or shahrestani snp table
+  ifelse(
+    treatments[i] == "O" | treatments[i] == "B",
+    snp_table_iter <- snp_table_regimes,
+    snp_table_iter <- snp_table_shahrestani
+  )
+  
+  # Run test
+  cmh_pvals[[paste0("cmh_adapted_scaled_", treatments[i])]] <-
+    AdaptedCmhTest(
+      snp_table = snp_table_iter,
+      treatment1 = treatments[i])
+  
+  # Print test name completed
+  print(paste("Classic CMH test done:", treatments[i]))
+  
+}
 
-cmh_pvals$cmh_adapted_ob01_vs_ob20_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "OB",
-    gen1 = "01",
-    treatment2 = "OB",
-    gen2 = "20")
-
-cmh_pvals$cmh_adapted_nbo01_vs_nbo56_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
-
-cmh_pvals$cmh_adapted_nb01_vs_nb56_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_shahrestani_scaled,
-    treatment1 = "nB",
-    gen1 = "01",
-    treatment2 = "nB",
-    gen2 = "56")
-
-cmh_pvals$cmh_adapted_o01_vs_o20_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_regimes_scaled,
-    treatment1 = "O",
-    gen1 = "01",
-    treatment2 = "O",
-    gen2 = "20")
-
-cmh_pvals$cmh_adapted_b01_vs_b56_scaled <-
-  AdaptedCmhTest(
-    snp_table = snp_table_regimes_scaled,
-    treatment1 = "B",
-    gen1 = "01",
-    treatment2 = "B",
-    gen2 = "56")
-
-saveRDS(cmh_pvals, "results/cmh_pvals.rds")
 
 # 3 - Permutation tests ========================================================
 snp_table_shahrestani <-
@@ -361,7 +257,13 @@ sapply(
   treatment1 = "OBO",
   gen1 = "01",
   treatment2 = "OBO",
-  gen2 = "20"
+  gen2 = "20",
+  Ne = GetNe(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OBO",
+    gen1 = "01",
+    treatment2 = "OBO",
+    gen2 = "20")
 )
 
 sapply(
@@ -373,7 +275,14 @@ sapply(
   treatment1 = "OB",
   gen1 = "01",
   treatment2 = "OB",
-  gen2 = "20"
+  gen2 = "20",
+  Ne = GetNe(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "OB",
+    gen1 = "01",
+    treatment2 = "OB",
+    gen2 = "20")
+  
 )
 
 sapply(
@@ -385,7 +294,13 @@ sapply(
   treatment1 = "nBO",
   gen1 = "01",
   treatment2 = "nBO",
-  gen2 = "56"
+  gen2 = "56",
+  Ne = GetNe(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
 )
 
 sapply(
@@ -397,7 +312,13 @@ sapply(
   treatment1 = "nB",
   gen1 = "01",
   treatment2 = "nB",
-  gen2 = "56"
+  gen2 = "56",
+  Ne = GetNe(
+    snp_table = snp_table_shahrestani,
+    treatment1 = "nBO",
+    gen1 = "01",
+    treatment2 = "nBO",
+    gen2 = "56")
 )
 
 sapply(
@@ -409,7 +330,13 @@ sapply(
   treatment1 = "O",
   gen1 = "01",
   treatment2 = "O",
-  gen2 = "20"
+  gen2 = "20",
+  Ne = GetNe(
+    snp_table = snp_table_regimes,
+    treatment1 = "O",
+    gen1 = "01",
+    treatment2 = "O",
+    gen2 = "20")
 )
 
 sapply(
@@ -421,7 +348,13 @@ sapply(
   treatment1 = "B",
   gen1 = "01",
   treatment2 = "B",
-  gen2 = "56"
+  gen2 = "56",
+  Ne = GetNe(
+    snp_table = snp_table_regimes,
+    treatment1 = "B",
+    gen1 = "01",
+    treatment2 = "B",
+    gen2 = "56")
 )
 
 # Read files and create a new csv with all needed information
@@ -585,6 +518,7 @@ grid_plot_cmh_classic_OBO <-
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_classic_obo01_vs_obo20),
     permutation_pvals = perm_pvals$obo,
+    percentage_significance = FALSE,
     title = "Classical CMH test: OBO gen01 vs OBO gen20",
     x_label = FALSE,
     y_label = NULL,
@@ -597,6 +531,7 @@ grid_plot_cmh_classic_OB <-
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_classic_ob01_vs_ob20),
     permutation_pvals = perm_pvals$ob,
+    percentage_significance = FALSE,
     title = "Classical CMH test: OB gen01 vs OB gen20",
     x_label = FALSE,
     y_label = "-log10(p-value)",
@@ -608,7 +543,8 @@ grid_plot_cmh_classic_O <-
   GetManhattanPlot(
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_classic_o01_vs_o20),
-    permutation_pvals = NULL,
+    permutation_pvals = perm_pvals$o,
+    percentage_significance = FALSE,
     title = "Classical CMH test: O gen01 vs O gen20",
     x_label = TRUE,
     y_label = NULL,
@@ -1429,6 +1365,61 @@ grid.arrange(grid_plot_cmh_adapted_OBO,
 
 dev.off()
 
+# 4.4 - Scaled and FDR =========================================================
+# Pending all plots!!!
+# Grid arrange
+layout <- matrix(c(1,2,3), ncol = 1, byrow = TRUE)
+y_limit_up <- 220
+
+grid_plot_cmh_adapted_OBO <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_obo01_vs_obo20_scaled, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, scaled, FDR corrected: OBO gen01 vs OBO gen20",
+                   x_label = FALSE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+
+grid_plot_cmh_adapted_OB <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_ob01_vs_ob20_scaled, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, scaled, FDR corrected: OB gen01 vs OB gen20",
+                   x_label = FALSE,
+                   y_label = "-log10(p-value)",
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+
+grid_plot_cmh_adapted_O <-
+  GetManhattanPlot(my_dataframe = cmh_pvals,
+                   Y = -log10(p.adjust(cmh_pvals$cmh_adapted_o01_vs_o20_scaled, method = "BH")),
+                   permutation_pvals = NULL,
+                   percentage_significance = TRUE,
+                   title = "Adapted CMH test, scaled, FDR corrected: O gen01 vs O gen20",
+                   x_label = TRUE,
+                   y_label = NULL,
+                   palette = "blue",
+                   y_limit_up = y_limit_up,
+                   y_limit_down = 0)
+
+# Save grid
+png(filename = "results/figures/cmh_fdr_scaled/adapted/cmh_adapted_OBO_OB_O_piled.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(grid_plot_cmh_adapted_OBO,
+             grid_plot_cmh_adapted_OB,
+             grid_plot_cmh_adapted_O,
+             layout_matrix = layout)
+
+dev.off()
+
+
 # 4.4 - QQ Plots ================================================================
 
 n <- nrow(cmh_pvals)
@@ -1459,8 +1450,456 @@ ggsave("results/figures/pca_plot_unlabeled.png",
        height = 1600,
        units = "px")
 
-# 6 - Gene Enrichment Analysis =================================================
+# 6 - Frequency Analysis =======================================================
 # Load files
+snp_table_shahrestani <- 
+  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
+
+snp_table_regimes <-
+  readRDS("data/processed/processed_snps_abcd_regimes.rds")
+
+cmh_pvals <- readRDS("results/cmh_pvals.rds")
+
+# Check freqs for all SNPs
+freq <- GetFreq(snp_table_shahrestani)
+
+# Create a layout with two rows and 5 columns
+layout <- matrix(c(1,2,3,4,5,6,7,8,9,10), ncol = 5, byrow = TRUE)
+
+# Plot OBO freqs
+obo_rep01_gen01_freq <- 
+  ggplot(freq, aes(alt_OBO_rep01_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep02_gen01_freq <-
+  ggplot(freq, aes(alt_OBO_rep02_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep03_gen01_freq <-
+  ggplot(freq, aes(alt_OBO_rep03_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep04_gen01_freq <-
+  ggplot(freq, aes(alt_OBO_rep04_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep05_gen01_freq <-
+  ggplot(freq, aes(alt_OBO_rep05_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep01_gen20_freq <-
+  ggplot(freq, aes(alt_OBO_rep01_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep02_gen20_freq <-
+  ggplot(freq, aes(alt_OBO_rep02_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep03_gen20_freq <-
+  ggplot(freq, aes(alt_OBO_rep03_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep04_gen20_freq <-
+  ggplot(freq, aes(alt_OBO_rep04_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep05_gen20_freq <-
+  ggplot(freq, aes(alt_OBO_rep05_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+png(filename = "results/figures/freq_hist/obo_freq_hist_all.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(obo_rep01_gen01_freq,
+             obo_rep02_gen01_freq,
+             obo_rep03_gen01_freq,
+             obo_rep04_gen01_freq,
+             obo_rep05_gen01_freq,
+             obo_rep01_gen20_freq,
+             obo_rep02_gen20_freq,
+             obo_rep03_gen20_freq,
+             obo_rep04_gen20_freq,
+             obo_rep05_gen20_freq,
+             layout_matrix = layout)
+
+dev.off()
+
+# Plot OB freqs
+OB_rep01_gen01_freq <- 
+  ggplot(freq, aes(alt_OB_rep01_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep02_gen01_freq <-
+  ggplot(freq, aes(alt_OB_rep02_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep03_gen01_freq <-
+  ggplot(freq, aes(alt_OB_rep03_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep04_gen01_freq <-
+  ggplot(freq, aes(alt_OB_rep04_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep05_gen01_freq <-
+  ggplot(freq, aes(alt_OB_rep05_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep01_gen20_freq <-
+  ggplot(freq, aes(alt_OB_rep01_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep02_gen20_freq <-
+  ggplot(freq, aes(alt_OB_rep02_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep03_gen20_freq <-
+  ggplot(freq, aes(alt_OB_rep03_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep04_gen20_freq <-
+  ggplot(freq, aes(alt_OB_rep04_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep05_gen20_freq <-
+  ggplot(freq, aes(alt_OB_rep05_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+png(filename = "results/figures/freq_hist/OB_freq_hist_all.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(OB_rep01_gen01_freq,
+             OB_rep02_gen01_freq,
+             OB_rep03_gen01_freq,
+             OB_rep04_gen01_freq,
+             OB_rep05_gen01_freq,
+             OB_rep01_gen20_freq,
+             OB_rep02_gen20_freq,
+             OB_rep03_gen20_freq,
+             OB_rep04_gen20_freq,
+             OB_rep05_gen20_freq,
+             layout_matrix = layout)
+
+dev.off()
+
+# Now do the same thing for only significant SNPs
+# Check freqs for all SNPs
+# Add the CMH vals to the snp_table so we can filter them all together
+cmh_pvals$ABS_POS <- NULL
+cmh_pvals$CHROM <- NULL
+snp_table_shahrestani <- cbind(snp_table_shahrestani, cmh_pvals)
+
+threshold <- 1e-100
+
+filtered_snp_table <- snp_table_shahrestani[which(snp_table_shahrestani$cmh_adapted_o01_vs_o20 < threshold),]
+
+freq_significant <- GetFreq(filtered_snp_table)
+
+# Create a layout with two rows and 5 columns
+layout <- matrix(c(1,2,3,4,5,6,7,8,9,10), ncol = 5, byrow = TRUE)
+
+# Plot OBO freqs
+obo_rep01_gen01_freq_significant <- 
+  ggplot(freq_significant, aes(alt_OBO_rep01_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep02_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep02_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep03_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep03_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep04_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep04_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep05_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep05_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep01_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep01_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep02_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep02_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep03_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep03_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep04_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep04_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+obo_rep05_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OBO_rep05_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+png(filename = "results/figures/freq_hist/obo_freq_significant_hist.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(obo_rep01_gen01_freq_significant,
+             obo_rep02_gen01_freq_significant,
+             obo_rep03_gen01_freq_significant,
+             obo_rep04_gen01_freq_significant,
+             obo_rep05_gen01_freq_significant,
+             obo_rep01_gen20_freq_significant,
+             obo_rep02_gen20_freq_significant,
+             obo_rep03_gen20_freq_significant,
+             obo_rep04_gen20_freq_significant,
+             obo_rep05_gen20_freq_significant,
+             layout_matrix = layout)
+
+dev.off()
+
+# Plot OB freqs
+OB_rep01_gen01_freq_significant <- 
+  ggplot(freq_significant, aes(alt_OB_rep01_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep02_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep02_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep03_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep03_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep04_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep04_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep05_gen01_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep05_gen01)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep01_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep01_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep02_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep02_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep03_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep03_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep04_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep04_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+OB_rep05_gen20_freq_significant <-
+  ggplot(freq_significant, aes(alt_OB_rep05_gen20)) + 
+  geom_histogram(binwidth = 0.01, color = "black") +
+  theme_minimal()
+
+png(filename = "results/figures/freq_hist/OB_freq_significant_hist.png",
+    width = 1800,
+    height = 900)
+
+grid.arrange(OB_rep01_gen01_freq_significant,
+             OB_rep02_gen01_freq_significant,
+             OB_rep03_gen01_freq_significant,
+             OB_rep04_gen01_freq_significant,
+             OB_rep05_gen01_freq_significant,
+             OB_rep01_gen20_freq_significant,
+             OB_rep02_gen20_freq_significant,
+             OB_rep03_gen20_freq_significant,
+             OB_rep04_gen20_freq_significant,
+             OB_rep05_gen20_freq_significant,
+             layout_matrix = layout)
+
+dev.off()
+
+
+# 7 - Allele Trajectory Analysis ===============================================
+
+# Data loading
+snp_table_shahrestani <- 
+  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
+
+cmh_pvals <- readRDS("results/cmh_pvals.rds")
+
+
+PhaseSnps <- function(freq) {
+  
+  print("Warning: phasing SNPs put them on a different col order")
+  print("Now, we have all gen01 columns and then all gen20 columns")
+  
+  phased_snp_table_gen01 <- freq[,grep("gen01", colnames(freq))]
+  phased_snp_table_gen20 <- freq[,grep("gen20|gen56", colnames(freq))]
+  
+  marked_for_phasing <- phased_snp_table_gen01 > 0.5
+  
+  # If marked for phasing, subtract 1 from the value
+  phased_snp_table_gen01[marked_for_phasing] <- 
+    1 - phased_snp_table_gen01[marked_for_phasing]
+  
+  phased_snp_table_gen20[marked_for_phasing] <- 
+    1 - phased_snp_table_gen20[marked_for_phasing]
+  
+  phased_snp_table <- cbind(phased_snp_table_gen01, phased_snp_table_gen20)
+  
+  return(phased_snp_table)
+}
+
+cmh_pvals$ABS_POS <- NULL
+cmh_pvals$CHROM <- NULL
+snp_table_shahrestani <- cbind(snp_table_shahrestani, cmh_pvals)
+
+threshold <- 1e-100
+
+filtered_snp_table <- snp_table_shahrestani[which(snp_table_shahrestani$cmh_adapted_o01_vs_o20 < threshold),]
+filtered_snp_table <- dplyr::select(filtered_snp_table, -contains("nB"))
+
+freq_significant <- GetFreq(filtered_snp_table)
+
+phased_freq_significant <- PhaseSnps(freq_significant)
+
+#phased_freq_significant_OBO <- phased_freq_significant[,grep("OBO", colnames(phased_freq_significant))]
+#phased_freq_significant_OB <- phased_freq_significant[,grep("OB_", colnames(phased_freq_significant))]
+
+plots <- list()
+for (i in 0:9) {
+  # Define y axis
+  rep_i_01 <- phased_freq_significant[1+i]
+  print(colnames(rep_i_01))
+  rep_i_20 <- phased_freq_significant[11+i]
+  print(colnames(rep_i_20))
+  
+  colnames(rep_i_01) <- "freq"
+  colnames(rep_i_20) <- "freq"
+  
+  plotting_df <- cbind(rep_i_01, rep_i_20)
+  
+  # png(filename = paste("results/figures/allele_trajectory/rep", i+1, ".png", sep = ""),
+  #     width = 1800,
+  #     height = 900)
+  
+  plot(1,
+       type = "n",
+       xlab = "", 
+       ylab = "",
+       xlim = c(1, 20),  
+       ylim = c(0, 1),
+       xaxt = "n",
+       main = paste("rep", i+1),
+       cex.axis = 2
+  )
+  for (row in 1:nrow(plotting_df)) {
+    lines(x = c(1,20), 
+          y = plotting_df[row,])
+  }
+  
+  p <- recordPlot()
+  
+  # dev.off()
+  
+  plots[[i+1]] <- p
+  print(i+1)
+}
+
+
+# 7.1 - Delta Statistic ========================================================
+# Data loading
+snp_table_shahrestani <- 
+  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
+
+freq <- GetFreq(snp_table_shahrestani)
+freq <- dplyr::select(freq, -contains("nB"))
+
+phased_freq <- PhaseSnps(freq)
+
+# Create a delta dataframe, which will calculate the delta in frequency for all the replicates
+delta_df <- data.frame(matrix(NA, nrow = nrow(freq), ncol = 10))
+
+gen01 <- phased_freq[,grep("gen01", colnames(phased_freq))]
+gen20 <- phased_freq[,grep("gen20|gen56", colnames(phased_freq))]
+
+for (i in 1:10) {
+  delta_df[,i] <- gen20[,i] - gen01[,i]
+}
+
+colnames(delta_df) <- colnames(freq[1:10])
+delta_df <- abs(delta_df)
+
+cmh_pvals <- readRDS("results/cmh_pvals.rds")
+cmh_pvals$delta <- rowSums(delta_df)/ncol(delta_df)
+
+y_limit_up <- 220
+grid_plot_cmh_adapted_O_scaled_fdr <-
+  GetManhattanPlot(
+    my_dataframe = cmh_pvals,
+    Y = -log10(p.adjust(cmh_pvals$cmh_adapted_o01_vs_o20_scaled, method = "BH")),
+    permutation_pvals = NULL,
+    percentage_significance = TRUE,
+    title = "Adapted CMH test, scaled, FDR corrected: O gen01 vs O gen20, colored for delta > 0.40",
+    x_label = TRUE,
+    y_label = NULL,
+    palette = "blue",
+    y_limit_up = y_limit_up,
+    y_limit_down = 0)
+
+
+# Lets color the top 10% higher delta values in red
+grid_plot_cmh_adapted_O_scaled_fdr <-
+  grid_plot_cmh_adapted_O_scaled_fdr +
+  aes(color = delta > 0.40) +  # Add color mapping
+  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red")) +
+  labs(color = "Higher Delta")  # Update legend label
+
+
+grid_plot_cmh_adapted_O_scaled_fdr
+
+# ==============================================================================
+  
 snp_table_shahrestani <- 
   readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
 
@@ -1474,11 +1913,11 @@ cmh_pvals$ABS_POS <- NULL
 cmh_pvals$CHROM <- NULL
 snp_table_shahrestani <- cbind(snp_table_shahrestani, cmh_pvals)
 
-# Let's create a threshold of significance
-threshold <- quantile(
-  as.numeric(filtered_snp_table$cmh_adapted_o01_vs_o20),
-  probs = 0.001
-)
+threshold <- 1e-100
+
+filtered_snp_table <- snp_table_shahrestani[which(snp_table_shahrestani$cmh_adapted_o01_vs_o20 < threshold),]
+
+freq <- GetFreq(filtered_snp_table)
 
 # Problem: most significant SNPs start from a fixed frequency all O-type populations
 # If that were true, it would mean that the exact same mutation happened in all experimental populations, which is extremely unlikely

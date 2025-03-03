@@ -1,5 +1,12 @@
 source("scripts/00_useful_functions.R")
 
+# Debugging
+treatment1 <- "OBO"
+gen1 <- "01"
+treatment2 <- "OBO"
+gen2 <- "20"
+snp_table <- snp_table_shahrestani
+
 RunPermutationTestIteration <- 
   function(method = c("classic", "adapted"),
            filename,
@@ -8,7 +15,8 @@ RunPermutationTestIteration <-
            treatment1,
            gen1,
            treatment2,
-           gen2) {
+           gen2,
+           Ne = NULL) {
   
   # WARNING!
   # I think you don't have to run the permutation test if using the adapted 
@@ -49,7 +57,8 @@ RunPermutationTestIteration <-
   
   choices_rand <- c(rbind(choices_rand_alt, choices_rand_N))
   
-  colnames(snp_table_filtered) <- choices_rand
+  #colnames(snp_table_filtered) <- choices_rand
+  snp_table_filtered <- snp_table_filtered[,choices_rand]
   
   if (method == "classic") {
     
@@ -69,7 +78,8 @@ RunPermutationTestIteration <-
         treatment1 = treatment1,
         gen1 = gen1,
         treatment2 = treatment2,
-        gen2 = gen2)
+        gen2 = gen2,
+        Ne = Ne)
     
   }
   
@@ -86,4 +96,4 @@ RunPermutationTestIteration <-
          append=TRUE)
   
   return(max_pval)
-}
+  }

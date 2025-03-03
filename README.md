@@ -5,7 +5,10 @@
 - [ ] Clean code on unorganized scripts
 - [ ] There are universal functions inside 03_cmh_tests.R that have to be moved somewhere else
 - [ ] Unstage big files
-- [ ]
+- [ ] MAF excluding B populations
+- [ ] Allele trajectory means instead of one per replicate
+- [ ] Organize my code
+- [ ] Vectorize function calling
 
 ## Issues
  - Biggest issue I'm facing - my CMH test p-values are too small! When I check how other papers in the field are dealing with FDR, lots of them apply a correction such as q-value or Bonferroni or BH, and then assume everything < 0.05 as true positives. However, if I do that, half of my SNPs are significant, or in other words, the whole Drosophila genome becomes associated with the adaptation.

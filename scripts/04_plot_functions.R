@@ -118,11 +118,9 @@ PlotCoverage <- function(snp_table,
 GetAllelicTrajectoryPlot <- function(snp_table,
                                      snp,
                                      treatments = c("OB", "OBO", "nB", "nBO"),
-                                     width = 720,
-                                     height = 540,
                                      cex = 2.5) {
   
-    # Define samples and filter freq dataset to contain only the interesting SNP
+  # Define samples and filter freq dataset to contain only the interesting SNP
   snp_chrom <- gsub(":", "", unlist(strsplit(snp, ":"))[1])
   snp_pos <- as.numeric(unlist(strsplit(snp, ":"))[2])
   
@@ -131,6 +129,7 @@ GetAllelicTrajectoryPlot <- function(snp_table,
   freq$POS <- snp_table$POS
   freq$CHROM <- snp_table$CHROM
   freq_filtered <- freq[snp_table$POS == snp_pos & snp_table$CHROM == snp_chrom, ]
+
   
   # Transpose the dataframe to make manipulation easier
   freq_filtered_t <- as.data.frame(t(freq_filtered))
@@ -181,7 +180,7 @@ GetAllelicTrajectoryPlot <- function(snp_table,
       freq_filtered_t[grep(paste(treatment, "_rep.._gen20|", treatment, "_rep.._gen56", sep=""), rownames(freq_filtered_t)), 1]
     )
     
-    # Gets color and stroke for treatments
+      # Gets color and stroke for treatments
     color = colors[treatment]
     stroke = strokes[treatment]
     

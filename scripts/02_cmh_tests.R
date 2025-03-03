@@ -6,9 +6,17 @@ library(qvalue)
 ClassicalCmhTest <- function(
     snp_table,
     treatment1,
-    gen1,
-    treatment2,
-    gen2) {
+    gen1 = "01",
+    treatment2 = treatment1,
+    gen2 = "20") {
+  
+  # Force evaluation of treatment2
+  force(treatment2)
+  
+  # Changes gen2 if dealing with nBO or nB or B
+  if (treatment2 == "nBO" | treatment2 == "nB" | treatment2 == "B") {
+    gen2 <- "56"
+  }
   
   snp_table_filtered <-
     FilterSamples(
@@ -93,8 +101,8 @@ GetNe <- function(
       poolSize = c(100, 100))
     
     # In case I want to save these
-    # pop_name <- gsub(".*_([A-Z]+_rep\\d+).*", "\\1", colnames(freq_cmh1[i]))
-    # cat(pop_name, "estimated Ne:", estimated_Ne, "\n")
+    pop_name <- gsub(".*_([A-Z]+_rep\\d+).*", "\\1", colnames(freq_cmh1[i]))
+    cat(pop_name, "estimated Ne:", estimated_Ne, "\n")
     Ne <- c(Ne, as.integer(unname(estimated_Ne)))
   }
   
@@ -104,13 +112,21 @@ GetNe <- function(
 AdaptedCmhTest <- function(
     snp_table,
     treatment1,
-    gen1,
-    treatment2,
-    gen2,
-    t = 20) {
+    gen1 = "01",
+    treatment2 = treatment1,
+    gen2 = "20",
+    t = 20,
+    Ne) {
   
-  # This function uses the poolSeq package to calculate an CMH test adapted to our genomics use case
-  snp_table_filtered <- 
+  # Force evaluation of treatment2
+  force(treatment2)
+  
+  # Changes gen2 if dealing with nBO or nB or B
+  if (treatment2 == "nBO" | treatment2 == "nB" | treatment2 == "B") {
+    gen2 <- "56"
+  }
+  
+  snp_table_filtered2 <-
     FilterSamples(
       snp_table = snp_table,
       treatment1 = treatment1,
@@ -130,15 +146,15 @@ AdaptedCmhTest <- function(
     gen2 <- 02
   }
   
-  # Calculates Ne
-  Ne <-
-    GetNe(
-      snp_table = snp_table_filtered,
-      treatment1 = treatment1,
-      gen1 = gen1,
-      treatment2 = treatment2,
-      gen2 = gen2,
-      t = t)
+  ## Calculates Ne
+  # Ne <-
+  #   GetNe(
+  #     snp_table = snp_table_filtered,
+  #     treatment1 = treatment1,
+  #     gen1 = gen1,
+  #     treatment2 = treatment2,
+  #     gen2 = gen2,
+  #     t = t)
   
   pvals <- 
     adapted.cmh.test(
