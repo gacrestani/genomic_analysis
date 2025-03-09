@@ -1,399 +1,9 @@
-# Header =======================================================================
-# This script is the main script that runs the entire analysis. It reads the raw
-# snp_table, processes it, and runs the CMH tests. The results are saved in the
-# results folder.
-
-# 0 - Load useful functions ====================================================
-source("scripts/00_useful_functions.R")
-source("scripts/01_data_preparation.R")
-source("scripts/02_cmh_tests.R")
-source("scripts/03_permutation_test.R")
-source("scripts/04_plot_functions.R")
-source("scripts/05_pca_analysis.R")
-source("scripts/06_gene_enrichment_analysis.R")
-
-options(scipen=999) # Disable scientific notation
-
-# 1 - Process raw data =========================================================
-snp_table_shahrestani <- as.data.frame(ReadAndPrepare(mode = "shahrestani"))
-saveRDS(snp_table_shahrestani,
-        "data/processed/processed_snps_abcd_shahrestani.rds")
-
-snp_table_regimes <- as.data.frame(ReadAndPrepare(mode = "regimes"))
-saveRDS(snp_table_regimes,
-        "data/processed/processed_snps_abcd_regimes.rds")
-
-# Create scaled snp tables
-snp_table_shahrestani_scaled <- ScaleSnpTable(snp_table_shahrestani)
-saveRDS(snp_table_shahrestani_scaled,
-        "data/processed/processed_snps_abcd_shahrestani_scaled.rds")
-
-snp_table_regimes_scaled <- ScaleSnpTable(snp_table_regimes)
-saveRDS(snp_table_regimes_scaled,
-        "data/processed/processed_snps_abcd_regimes_scaled.rds")
-
-# 2 - CMH tests ================================================================
-snp_table_shahrestani <- 
-  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
-
-snp_table_regimes <-
-  readRDS("data/processed/processed_snps_abcd_regimes.rds")
-
-# Initiates an empty dataframe with the same number of rows as our snp tables
-cmh_pvals <-
-  data.frame(matrix(NA,
-                    nrow = nrow(snp_table_shahrestani),
-                    ncol = 0))
-
-cmh_pvals$ABS_POS <- snp_table_shahrestani$ABS_POS
-cmh_pvals$CHROM <- snp_table_shahrestani$CHROM
-
-# 2.1 - Unscaled data ==========================================================
-# NOTE: These functions take a while to run (even running in parallel)
-
-treatments <- c("OBO", "OB", "nBO", "nB", "O", "B")
-gen2 <- c("20", "20", "56", "56", "20", "56")
-
-# Classic CMH
-# Takes a while to run
-for (i in 1:length(treatments)) {
-  
-  # Define if using regimes or shahrestani snp table
-  ifelse(
-    treatments[i] == "O" | treatments[i] == "B",
-    snp_table_iter <- snp_table_regimes,
-    snp_table_iter <- snp_table_shahrestani
-  )
-  
-  # Run test
-  cmh_pvals[[paste0("cmh_classic_", treatments[i])]] <-
-    ClassicalCmhTest(
-      snp_table = snp_table_iter,
-      treatment1 = treatments[i])
-  
-  # Print test name completed
-  print(paste("Classic CMH test done:"), treatment)
-  
-}
-
-# Adapted CMH
-# These are faster than the classical tests
-for (i in 1:length(treatments)) {
-  
-  # Define if using regimes or shahrestani snp table
-  ifelse(
-    treatments[i] == "O" | treatments[i] == "B",
-    snp_table_iter <- snp_table_regimes,
-    snp_table_iter <- snp_table_shahrestani
-  )
-  
-  # Run test
-  cmh_pvals[[paste0("cmh_adapted_", treatments[i])]] <-
-    AdaptedCmhTest(
-      snp_table = snp_table_iter,
-      treatment1 = treatments[i])
-  
-  # Print test name completed
-  print(paste("Classic CMH test done:", treatments[i]))
-  
-}
-
-
-# 2.2 - Scaled data ============================================================
-snp_table_shahrestani_scaled <- 
-  readRDS("data/processed/processed_snps_abcd_shahrestani_scaled.rds")
-
-snp_table_regimes_scaled <-
-  readRDS("data/processed/processed_snps_abcd_regimes_scaled.rds")
-
-treatments <- c("OBO", "OB", "nBO", "nB", "O", "B")
-gen2 <- c("20", "20", "56", "56", "20", "56")
-
-# Classic CMH
-# Takes a while to run
-for (i in 1:length(treatments)) {
-  
-  # Define if using regimes or shahrestani snp table
-  ifelse(
-    treatments[i] == "O" | treatments[i] == "B",
-    snp_table_iter <- snp_table_regimes_scaled,
-    snp_table_iter <- snp_table_shahrestani_scaled
-  )
-  
-  # Run test
-  cmh_pvals[[paste0("cmh_classic_scaled_", treatments[i])]] <-
-    ClassicalCmhTest(
-      snp_table = snp_table_iter,
-      treatment1 = treatments[i])
-  
-  # Print test name completed
-  print(paste("Classic CMH test done:"), treatment)
-  
-}
-
-# Adapted CMH
-# These are faster than the classical tests
-for (i in 1:length(treatments)) {
-  
-  # Define if using regimes or shahrestani snp table
-  ifelse(
-    treatments[i] == "O" | treatments[i] == "B",
-    snp_table_iter <- snp_table_regimes,
-    snp_table_iter <- snp_table_shahrestani
-  )
-  
-  # Run test
-  cmh_pvals[[paste0("cmh_adapted_scaled_", treatments[i])]] <-
-    AdaptedCmhTest(
-      snp_table = snp_table_iter,
-      treatment1 = treatments[i])
-  
-  # Print test name completed
-  print(paste("Classic CMH test done:", treatments[i]))
-  
-}
-
-
-# 3 - Permutation tests ========================================================
-snp_table_shahrestani <-
-  readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
-
-snp_table_regimes <-
-  readRDS("data/processed/processed_snps_abcd_regimes.rds")
-
-# 3.1 - Classic ################################################################
-n <- 1000
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_OBO01vsOBO20.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "OBO",
-  gen1 = "01",
-  treatment2 = "OBO",
-  gen2 = "20"
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_OB01vsOB20.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "OB",
-  gen1 = "01",
-  treatment2 = "OB",
-  gen2 = "20"
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_nBO01vsnBO56.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "nBO",
-  gen1 = "01",
-  treatment2 = "nBO",
-  gen2 = "56"
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_nB01vsnB56.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "nB",
-  gen1 = "01",
-  treatment2 = "nB",
-  gen2 = "56"
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_O01vsO20.csv",
-  snp_table = snp_table_regimes,
-  treatment1 = "O",
-  gen1 = "01",
-  treatment2 = "O",
-  gen2 = "20"
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "classic",
-  filename = "results/permutation_test/classic_B01vsB56.csv",
-  snp_table = snp_table_regimes,
-  treatment1 = "B",
-  gen1 = "01",
-  treatment2 = "B",
-  gen2 = "56"
-)
-
-# Read files and create a new csv with all needed information
-obo <- fread("results/permutation_test/classic_OBO01vsOBO20.csv", header = FALSE)
-ob  <- fread("results/permutation_test/classic_OB01vsOB20.csv",   header = FALSE)
-nbo <- fread("results/permutation_test/classic_nBO01vsnBO56.csv", header = FALSE)
-nb  <- fread("results/permutation_test/classic_nB01vsnB56.csv",   header = FALSE)
-b   <- fread("results/permutation_test/classic_B01vsB56.csv",     header = FALSE)
-o   <- fread("results/permutation_test/classic_O01vsO20.csv",     header = FALSE)
-
-perm_pvals <- cbind(obo,ob,nbo,nb,o,b)
-colnames(perm_pvals) <- c("obo", "ob", "nbo", "nb", "o", "b")
-
-# 3.2 - Adapted ################################################################
-n <- 1000
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_OBO01vsOBO20.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "OBO",
-  gen1 = "01",
-  treatment2 = "OBO",
-  gen2 = "20",
-  Ne = GetNe(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OBO",
-    gen1 = "01",
-    treatment2 = "OBO",
-    gen2 = "20")
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_OB01vsOB20.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "OB",
-  gen1 = "01",
-  treatment2 = "OB",
-  gen2 = "20",
-  Ne = GetNe(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "OB",
-    gen1 = "01",
-    treatment2 = "OB",
-    gen2 = "20")
-  
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_nBO01vsnBO56.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "nBO",
-  gen1 = "01",
-  treatment2 = "nBO",
-  gen2 = "56",
-  Ne = GetNe(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_nB01vsnB56.csv",
-  snp_table = snp_table_shahrestani,
-  treatment1 = "nB",
-  gen1 = "01",
-  treatment2 = "nB",
-  gen2 = "56",
-  Ne = GetNe(
-    snp_table = snp_table_shahrestani,
-    treatment1 = "nBO",
-    gen1 = "01",
-    treatment2 = "nBO",
-    gen2 = "56")
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_O01vsO20.csv",
-  snp_table = snp_table_regimes,
-  treatment1 = "O",
-  gen1 = "01",
-  treatment2 = "O",
-  gen2 = "20",
-  Ne = GetNe(
-    snp_table = snp_table_regimes,
-    treatment1 = "O",
-    gen1 = "01",
-    treatment2 = "O",
-    gen2 = "20")
-)
-
-sapply(
-  1:n,
-  RunPermutationTestIteration,
-  method = "adapted",
-  filename = "results/permutation_test/adapted_B01vsB56.csv",
-  snp_table = snp_table_regimes,
-  treatment1 = "B",
-  gen1 = "01",
-  treatment2 = "B",
-  gen2 = "56",
-  Ne = GetNe(
-    snp_table = snp_table_regimes,
-    treatment1 = "B",
-    gen1 = "01",
-    treatment2 = "B",
-    gen2 = "56")
-)
-
-# Read files and create a new csv with all needed information
-obo_adapted <- fread("results/permutation_test/adapted_OBO01vsOBO20.csv", header = FALSE)
-ob_adapted  <- fread("results/permutation_test/adapted_OB01vsOB20.csv",   header = FALSE)
-nbo_adapted <- fread("results/permutation_test/adapted_nBO01vsnBO56.csv", header = FALSE)
-nb_adapted  <- fread("results/permutation_test/adapted_nB01vsnB56.csv",   header = FALSE)
-b_adapted   <- fread("results/permutation_test/adapted_B01vsB56.csv",     header = FALSE)
-o_adapted   <- fread("results/permutation_test/adapted_O01vsO20.csv",     header = FALSE)
-
-perm_pvals_adapted <-
-  cbind(
-    obo_adapted,
-    ob_adapted,
-    nbo_adapted,
-    nb_adapted,
-    o_adapted,
-    b_adapted)
-
-colnames(perm_pvals_adapted) <-
-  c("obo_adapted",
-    "ob_adapted",
-    "nbo_adapted",
-    "nb_adapted",
-    "o_adapted",
-    "b_adapted")
-
-perm_pvals <- cbind(perm_pvals, perm_pvals_adapted)
-
-fwrite(perm_pvals, file = "results/perm_pvals.csv")
 
 # 4 - Plotting the results =====================================================
 cmh_pvals <- readRDS("results/cmh_pvals.rds")
 perm_pvals <- fread("results/perm_pvals.csv")
 
-y_limit_up <- 220
 
-width <- 7740
-height <- 1440
 
 # 4.1 - Crude ==================================================================
 # 4.1.1 - Classic CMH ==========================================================
@@ -692,7 +302,7 @@ grid_plot_cmh_adapted_OBO <-
   GetManhattanPlot(
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_adapted_obo01_vs_obo20),
-    permutation_pvals = NULL,
+    permutation_pvals = obo_adapted$V1,
     percentage_significance = TRUE,
     title = "Adapted CMH test: OBO gen01 vs OBO gen20",
     x_label = FALSE,
@@ -705,7 +315,7 @@ grid_plot_cmh_adapted_OB <-
   GetManhattanPlot(
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_adapted_ob01_vs_ob20),
-    permutation_pvals = NULL,
+    permutation_pvals = ob_adapted$V1,
     percentage_significance = TRUE,
     title = "Adapted CMH test: OB gen01 vs OB gen20",
     x_label = FALSE,
@@ -718,7 +328,7 @@ grid_plot_cmh_adapted_O <-
   GetManhattanPlot(
     my_dataframe = cmh_pvals,
     Y = -log10(cmh_pvals$cmh_adapted_o01_vs_o20),
-    permutation_pvals = NULL,
+    permutation_pvals = o_adapted$V1,
     percentage_significance = TRUE,
     title = "Adapted CMH test: O gen01 vs O gen20",
     x_label = TRUE,
@@ -1899,121 +1509,171 @@ grid_plot_cmh_adapted_O_scaled_fdr <-
 grid_plot_cmh_adapted_O_scaled_fdr
 
 # ==============================================================================
-  
+
+# Read snp tables
 snp_table_shahrestani <- 
   readRDS("data/processed/processed_snps_abcd_shahrestani.rds")
 
 snp_table_regimes <-
   readRDS("data/processed/processed_snps_abcd_regimes.rds")
 
+snp_table_shahrestani_scaled <- 
+  readRDS("data/processed/processed_snps_abcd_shahrestani_scaled.rds")
+
+snp_table_regimes_scaled <-
+  readRDS("data/processed/processed_snps_abcd_regimes_scaled.rds")
+
 cmh_pvals <- readRDS("results/cmh_pvals.rds")
 
 # Add the CMH vals to the snp_table so we can filter them all together
 cmh_pvals$ABS_POS <- NULL
 cmh_pvals$CHROM <- NULL
-snp_table_shahrestani <- cbind(snp_table_shahrestani, cmh_pvals)
+snp_table_shahrestani_scaled_cmh <- cbind(snp_table_shahrestani_scaled, cmh_pvals)
 
 threshold <- 1e-100
 
-filtered_snp_table <- snp_table_shahrestani[which(snp_table_shahrestani$cmh_adapted_o01_vs_o20 < threshold),]
+significant_snp_table <- snp_table_shahrestani_scaled_cmh[which(p.adjust(snp_table_shahrestani_scaled_cmh$cmh_adapted_o01_vs_o20_scaled,  method = "fdr") < threshold),]
 
-freq <- GetFreq(filtered_snp_table)
-
-# Problem: most significant SNPs start from a fixed frequency all O-type populations
-# If that were true, it would mean that the exact same mutation happened in all experimental populations, which is extremely unlikely
-# This is probably an artifact of our data processing workflow
-
-# out of the significant snps, make a histogram of the 
-
-# This will show you that the most significant SNPs start from a fixed frequency
-snp_table_significant <- 
-  snp_table_shahrestani[which(snp_table_shahrestani$cmh_adapted_o01_vs_o20 < threshold),]
-DiagnoseSnps(snp_table_significant)
-
-# Let's filter out the SNPs that start from a fixed frequency
-filtered_snp_table <- FilterOutFixedSnps(snp_table_shahrestani)
-
-# Let's see how a manhattan plot with only these SNPs looks like
-# The perm_pval can't be used here, as the permutation test was run with all SNPs
-# I would need to run a new permutation test with only these 407,678 SNPs to be sure.
-filtered_manhplot <-
-  GetManhattanPlot(
-    my_dataframe = filtered_snp_table,
-    Y = -log10(filtered_snp_table$cmh_adapted_o01_vs_o20),
-    #permutation_pvals = perm_pvals$o,
-    title = "Filtered Manhattan plot - O gen01 vs O gen20",
-    x_label = TRUE,
-    y_label = "-log10(p-value)",
-    palette = "blue",
-    y_limit_up = 100,
-    y_limit_down = 0
-  )
-
-# Lets paint the SNPs that are above the threshold in red
-filtered_manhplot <- filtered_manhplot +
-  aes(color = -log10(cmh_adapted_o01_vs_o20) > -log10(threshold)) +  # Add color mapping
-  scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red")) +
-  labs(color = "Above Threshold")  # Update legend label
-
-filtered_manhplot
-
-# Let's see the how the most significant SNPs look like now
-filtered_snp_table_significant <-
-  filtered_snp_table[which(filtered_snp_table$cmh_adapted_o01_vs_o20 < threshold),]
-
-DiagnoseSnps(filtered_snp_table_significant)
+# freq <- GetFreq(filtered_snp_table)
+# 
+# # Problem: most significant SNPs start from a fixed frequency all O-type populations
+# # If that were true, it would mean that the exact same mutation happened in all experimental populations, which is extremely unlikely
+# # This is probably an artifact of our data processing workflow
+# 
+# # out of the significant snps, make a histogram of the 
+# 
+# # This will show you that the most significant SNPs start from a fixed frequency
+# DiagnoseSnps(snp_table_significant)
+# 
+# # Let's filter out the SNPs that start from a fixed frequency
+# filtered_snp_table <- FilterOutFixedSnps(snp_table_shahrestani)
+# 
+# # Let's see how a manhattan plot with only these SNPs looks like
+# # The perm_pval can't be used here, as the permutation test was run with all SNPs
+# # I would need to run a new permutation test with only these 407,678 SNPs to be sure.
+# filtered_manhplot <-
+#   GetManhattanPlot(
+#     my_dataframe = filtered_snp_table,
+#     Y = -log10(p.adjust(filtered_snp_table$cmh_adapted_o01_vs_o20_scaled,  method = "fdr")),
+#     #permutation_pvals = perm_pvals$o,
+#     percentage_significance = TRUE,
+#     title = "Filtered Manhattan plot - O gen01 vs O gen20",
+#     x_label = TRUE,
+#     y_label = "-log10(p-value)",
+#     palette = "blue",
+#     y_limit_up = 300,
+#     y_limit_down = 0
+#   )
+# 
+# # Lets paint the SNPs that are above the threshold in red
+# filtered_manhplot <- filtered_manhplot +
+#   aes(color = -log10(cmh_adapted_o01_vs_o20) > -log10(threshold)) +  # Add color mapping
+#   scale_color_manual(values = c("FALSE" = "black", "TRUE" = "red")) +
+#   labs(color = "Above Threshold")  # Update legend label
+# 
+# filtered_manhplot
+# 
+# # Let's see the how the most significant SNPs look like now
+# filtered_snp_table_significant <-
+#   filtered_snp_table[which(filtered_snp_table$cmh_adapted_o01_vs_o20 < threshold),]
+# 
+# DiagnoseSnps(filtered_snp_table_significant)
 
 # Now we have interesting SNPs to look at. Let's do an enrichment analysis
-GO_dataframe <- filtered_snp_table_significant[c("CHROM", "POS", "cmh_adapted_o01_vs_o20")]
-GO_dataframe$cmh_adapted_o01_vs_o20 <- -log10(GO_dataframe$cmh_adapted_o01_vs_o20)
+GO_dataframe <- significant_snp_table[,c("CHROM", "POS", "cmh_adapted_o01_vs_o20_scaled")]
+GO_dataframe$cmh_adapted_o01_vs_o20_scaled <- -log10(GO_dataframe$cmh_adapted_o01_vs_o20_scaled)
 GO_dataframe$coordinate <- paste(GO_dataframe$CHROM, ":", GO_dataframe$POS, sep = "")
 
-# I've manually identified peaks
-peaks <- c(
-  "peak_1 " = "2L:2901919",
-  "peak_2 " = "2L:9348851",
-  "peak_3 " = "2L:10187059",
-  "peak_4 " = "2L:17541874",
-  "peak_5 " = "2L:21931301",
-  "peak_6 " = "2R:4559132",
-  "peak_7 " = "2R:8553887",
-  "peak_8 " = "2R:9814502",
-  "peak_9 " = "2R:12964273",
-  "peak_10" = "2R:17126389", # Check this one
-  "peak_11" = "2R:21846663", # This is a weird dot that falls on the line
-  "peak_12" = "2R:25001106",  # This one is also weird
-  "peak_13" = "3L:9338136",
-  "peak_14" = "3L:9787463",
-  "peak_15" = "3L:11211200",
-  "peak_16" = "3L:13404028",
-  "peak_17" = "3L:15767228",
-  "peak_18" = "3L:16327479",
-  "peak_19" = "3L:19958564",
-  "peak_20" = "3L:22980227",
-  "peak_21" = "3L:24755959",
-  "peak_22" = "3R:4343926",
-  "peak_23" = "3R:5218031",
-  "peak_24" = "3R:5231920",
-  "peak_25" = "3R:5860717",
-  "peak_26" = "3R:6977845",
-  "peak_27" = "3R:7220441",
-  "peak_28" = "3R:10865062",
-  "peak_29" = "3R:12723625",
-  "peak_30" = "3R:13064936",
-  "peak_31" = "3R:15178836",
-  "peak_32" = "3R:17175981",
-  "peak_33" = "3R:18127342",
-  "peak_34" = "3R:23236137",
-  "peak_35" = "3R:27000514",
-  "peak_36" = "3R:28166423",
-  "peak_37" = "3R:28989889",
-  "peak_38" = "3R:30694517",
-  "peak_39" = "X:2499092",
-  "peak_40" = "X:3532997",
-  "peak_41" = "X:5518016",
-  "peak_42" = "X:6194353"
-)
 
+
+# 8 - Enrichment Analysis ======================================================
 # Now we can use biomaRt to get a gene list for those regions.
 # We can later use that genelist in a website like GOrilla and see if there is any enrichment
 ensembl <- useEnsembl(biomart = "ensembl", dataset = "dmelanogaster_gene_ensembl")
+
+
+# Get the gene list for each peak
+genes <-
+  getBM(
+    attributes = c("ensembl_gene_id", "external_gene_name"),
+    filters = c("chromosome_name", "start", "end"),
+    values = list(chromosome_name = GO_dataframe$CHROM, start = GO_dataframe$POS, end = GO_dataframe$POS),
+    uniqueRows = TRUE,
+    mart = ensembl)
+
+genes_filtered <- genes[!duplicated(genes$external_gene_name),]  
+genes_filtered <- genes_filtered[!is.na(genes_filtered$external_gene_name),]
+genes_filtered <- genes_filtered[!grepl("df_nrg", genes_filtered$ensembl_gene_id),]
+
+genes_filtered <- genes_filtered[!grepl("^CG", genes_filtered$external_gene_name),]
+genes_filtered <- genes_filtered[!grepl("^CR", genes_filtered$external_gene_name),]
+genes_filtered <- genes_filtered[!grepl("RNA:", genes_filtered$external_gene_name),]
+
+write.table(genes_filtered$external_gene_name, "results/genes_filtered.txt", quote = FALSE, sep = "\n")
+
+# Using bioconductor tools
+BiocManager::install("BSgenome.Dmelanogaster.UCSC.dm6") # Genome sequences, not exactly what I want
+BiocManager::install("org.Dm.eg.db") # Annotation, that's what I want
+BiocManager::install("TxDb.Dmelanogaster.UCSC.dm6.ensGene") # TxDB (transcription)
+BiocManager::install("TxDb.Dmelanogaster.UCSC.dm6") # TxDB (transcription)
+
+#library(Drosophila_melanogaster)
+library(org.Dm.eg.db)
+library(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+
+genes_list <- genes(TxDb.Dmelanogaster.UCSC.dm6.ensGene)
+genes_list
+
+
+mycords <- significant_snp_table[c("CHROM", "POS")]
+mycords$CHROM <- paste0("chr", mycords$CHROM)
+mycords <- 
+  mycords %>%
+  mutate(chrom=CHROM, start=POS, end=POS) %>%
+  dplyr::select(chrom, start, end) %>%
+  makeGRangesFromDataFrame()
+
+mycords
+
+subset <- subsetByOverlaps(genes_list, mycords)
+genes <- as.data.frame(subset)
+genes$symbol <- mapIds(org.Dm.eg.db, keys = genes$gene_id, column = "SYMBOL", keytype = "ENSEMBL")
+
+write.table(unique(genes$symbol), "results/genes_filtered.txt", quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\n")
+
+as.data.frame(org.Dm.egSYMBOL) %>% head
+
+length(unique(genes$symbol))
+
+# GO Term Analysis
+BiocManager::install("clusterProfiler")
+library(biomaRt)
+library(clusterProfiler)
+ensembl <- useEnsembl(biomart = "genes", dataset = "dmelanogaster_gene_ensembl")
+
+go_annotations <-
+  biomaRt::getBM(
+    attributes = c("ensembl_gene_id", "description", "go_id", "name_1006", "go_linkage_type", "external_gene_name"),
+    filters = "ensembl_gene_id",
+    values = genes$gene_id,
+    mart = ensembl
+  )
+
+unwanted_go_evidence <- c("TAS", "NAS", "IC", "ND")
+
+reliable_go_annotations <- go_annotations[!go_annotations$go_linkage_type %in% unwanted_go_evidence,]
+
+go_results <-
+  enrichGO(
+    gene = go_annotations$ensembl_gene_id,,
+    OrgDb = org.Dm.eg.db,
+    keyType = "ENSEMBL",
+    ont = "BP",
+    pvalueCutoff = 0.05,
+    pAdjustMethod = "fdr",
+    qvalueCutoff = 0.05
+  )
+
+go_results_df <- as.data.frame(go_results)
+
+print(go_results_df)

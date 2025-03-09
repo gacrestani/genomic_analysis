@@ -9,6 +9,7 @@
 - [ ] Allele trajectory means instead of one per replicate
 - [ ] Organize my code
 - [ ] Vectorize function calling
+- [ ] Scaled Classic CMH permutation test
 
 ## Issues
  - Biggest issue I'm facing - my CMH test p-values are too small! When I check how other papers in the field are dealing with FDR, lots of them apply a correction such as q-value or Bonferroni or BH, and then assume everything < 0.05 as true positives. However, if I do that, half of my SNPs are significant, or in other words, the whole Drosophila genome becomes associated with the adaptation.
